@@ -1,0 +1,57 @@
+# Xcode
+*.xcworkspace
+*.xcscheme
+*.xcuserstate
+DerivedData/
+*.pbxuser
+!*.xcscheme
+
+# Build
+build/
+*.app
+*.dSYM
+*.ipa
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp
+*.tmp
+*.temp
+*.bak
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# Xcode Cloud
+.xcresult/
+
+# Android
+android/app/build/
+android/.gradle/
+android/local.properties
+android/gradle.properties

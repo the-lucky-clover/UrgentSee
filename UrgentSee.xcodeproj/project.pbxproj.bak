@@ -1,0 +1,633 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		19C1EAFFAB731CC9F1FF0DF9 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46637A54352B74F5AB8DEB8 /* SharedModels.swift */; };
+		44106E60E49DE0F0CAAE9383 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0248BF5F4689A94DF9F1F /* PushNotificationManager.swift */; };
+		44579A3A40F5F097D169C2AE /* UrgentSeeLiveActivityExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA8C819A062DB1DB1D33D11 /* UrgentSeeLiveActivityExtension.swift */; };
+		463B264EC6D55461C93F082E /* UrgentSeeDispatchConsole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F353AAA0A318185B77A6036 /* UrgentSeeDispatchConsole.swift */; };
+		4BA6EED8EB74D6D64E6DE737 /* UrgentSeeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC602F30695AFE749EB64D12 /* UrgentSeeApp.swift */; };
+		6078ABEE4EB42A7D497B1976 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F649A65183D57ADEDC54245 /* DesignSystem.swift */; };
+		6A6D081D3A1BDB44C95D64C4 /* libUrgentSeeShared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */; };
+		8C9724E1417BD0939B4BD4E7 /* UrgentSeeAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29304AD6CD2414C0278CBC30 /* UrgentSeeAttributes.swift */; };
+		99436D7EF43F4AD3CF7E71C4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 920020BA5DFCB06267D1C921 /* Assets.xcassets */; };
+		BBE7B01640FEB7D2F128273E /* libUrgentSeeShared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */; };
+		C438DCD9A92EB0AAD90263D6 /* E2EEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */; };
+		D325039F21A97760322D00F9 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766C356C46A664B71745D758 /* APIService.swift */; };
+		E5620F15A06391DB8A5CB10B /* ReverseAckService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B281B986529B7C8B108FA7F8 /* ReverseAckService.swift */; };
+		E72D4A8792FA6A31356E846B /* TrustCircleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71659558B1F760C9216DADA6 /* TrustCircleView.swift */; };
+		EF47D5E1F95FDA2942821124 /* TrustCircleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF870A86A01CFDBE5F0FED9E /* TrustCircleManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4F5D187033090E19BE9C745C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4EF352E24CC1A4F6C4A577AE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDC42590CB6AB1A5A7543D43;
+			remoteInfo = UrgentSeeShared;
+		};
+		90050593EB0B747D92A71B76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4EF352E24CC1A4F6C4A577AE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDC42590CB6AB1A5A7543D43;
+			remoteInfo = UrgentSeeShared;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0F353AAA0A318185B77A6036 /* UrgentSeeDispatchConsole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeDispatchConsole.swift; sourceTree = "<group>"; };
+		0F649A65183D57ADEDC54245 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		29304AD6CD2414C0278CBC30 /* UrgentSeeAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeAttributes.swift; sourceTree = "<group>"; };
+		39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libUrgentSeeShared.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		41299757B581BBC84A65DDCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		71659558B1F760C9216DADA6 /* TrustCircleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustCircleView.swift; sourceTree = "<group>"; };
+		766C356C46A664B71745D758 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2EEManager.swift; sourceTree = "<group>"; };
+		920020BA5DFCB06267D1C921 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AC602F30695AFE749EB64D12 /* UrgentSeeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeApp.swift; sourceTree = "<group>"; };
+		ACA8C819A062DB1DB1D33D11 /* UrgentSeeLiveActivityExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeLiveActivityExtension.swift; sourceTree = "<group>"; };
+		AE9045E934B263EACC8D85FC /* UrgentSee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UrgentSee.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B281B986529B7C8B108FA7F8 /* ReverseAckService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverseAckService.swift; sourceTree = "<group>"; };
+		B80CFBCD57274132A604359C /* UrgentSeeLiveActivity.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UrgentSeeLiveActivity.entitlements; sourceTree = "<group>"; };
+		C46637A54352B74F5AB8DEB8 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
+		D6A787EDCDE26D1BF3CA99D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		DDF0248BF5F4689A94DF9F1F /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
+		FA9937EA1E048FA4787965F9 /* UrgentSeeLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = UrgentSeeLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF870A86A01CFDBE5F0FED9E /* TrustCircleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustCircleManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AD42C14CAC4617E4AFA06267 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6A6D081D3A1BDB44C95D64C4 /* libUrgentSeeShared.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB0D28CABE627B070293BA1A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBE7B01640FEB7D2F128273E /* libUrgentSeeShared.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		076048F635FDD6EA2786597E /* Entitlements */ = {
+			isa = PBXGroup;
+			children = (
+				B80CFBCD57274132A604359C /* UrgentSeeLiveActivity.entitlements */,
+			);
+			path = Entitlements;
+			sourceTree = "<group>";
+		};
+		178FA69404D9F8667D6F2880 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				766C356C46A664B71745D758 /* APIService.swift */,
+				76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */,
+				DDF0248BF5F4689A94DF9F1F /* PushNotificationManager.swift */,
+				B281B986529B7C8B108FA7F8 /* ReverseAckService.swift */,
+				FF870A86A01CFDBE5F0FED9E /* TrustCircleManager.swift */,
+				71659558B1F760C9216DADA6 /* TrustCircleView.swift */,
+				0F353AAA0A318185B77A6036 /* UrgentSeeDispatchConsole.swift */,
+			);
+			name = Core;
+			path = UrgentSee/Core;
+			sourceTree = "<group>";
+		};
+		1CE0D7B5FDCB264CA8F90B58 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				0F649A65183D57ADEDC54245 /* DesignSystem.swift */,
+				D6A787EDCDE26D1BF3CA99D8 /* Info.plist */,
+				C46637A54352B74F5AB8DEB8 /* SharedModels.swift */,
+			);
+			name = Shared;
+			path = UrgentSee/Shared;
+			sourceTree = "<group>";
+		};
+		2B00DE95E59B243B502A47CE /* UrgentSee */ = {
+			isa = PBXGroup;
+			children = (
+				920020BA5DFCB06267D1C921 /* Assets.xcassets */,
+			);
+			path = UrgentSee;
+			sourceTree = "<group>";
+		};
+		914C592CA01E32778ABF3EDC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */,
+				AE9045E934B263EACC8D85FC /* UrgentSee.app */,
+				FA9937EA1E048FA4787965F9 /* UrgentSeeLiveActivityExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9575ED30A3FB911B3E1F3D6D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AC602F30695AFE749EB64D12 /* UrgentSeeApp.swift */,
+			);
+			name = App;
+			path = UrgentSee/App;
+			sourceTree = "<group>";
+		};
+		A15D1B72CF4F128D3603AB90 = {
+			isa = PBXGroup;
+			children = (
+				9575ED30A3FB911B3E1F3D6D /* App */,
+				178FA69404D9F8667D6F2880 /* Core */,
+				1CE0D7B5FDCB264CA8F90B58 /* Shared */,
+				2B00DE95E59B243B502A47CE /* UrgentSee */,
+				D6DB356D774D9B6BA7E676EE /* UrgentSeeLiveActivityExtension */,
+				914C592CA01E32778ABF3EDC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D6DB356D774D9B6BA7E676EE /* UrgentSeeLiveActivityExtension */ = {
+			isa = PBXGroup;
+			children = (
+				41299757B581BBC84A65DDCB /* Info.plist */,
+				29304AD6CD2414C0278CBC30 /* UrgentSeeAttributes.swift */,
+				ACA8C819A062DB1DB1D33D11 /* UrgentSeeLiveActivityExtension.swift */,
+				076048F635FDD6EA2786597E /* Entitlements */,
+			);
+			path = UrgentSeeLiveActivityExtension;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		02FF7AC51A18AC4F2DE6678B /* UrgentSee */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 10AF5C2322EDB167C0FCD258 /* Build configuration list for PBXNativeTarget "UrgentSee" */;
+			buildPhases = (
+				2D5CADE82333007FB655492A /* Sources */,
+				CEB4972B3CC4C11069347CA1 /* Resources */,
+				AD42C14CAC4617E4AFA06267 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				963313011FADC31BD9AFE996 /* PBXTargetDependency */,
+			);
+			name = UrgentSee;
+			packageProductDependencies = (
+			);
+			productName = UrgentSee;
+			productReference = AE9045E934B263EACC8D85FC /* UrgentSee.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8B736AAB2449C1866092E1AA /* UrgentSeeLiveActivityExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E0FB07A2A72BD4E0C6C98C12 /* Build configuration list for PBXNativeTarget "UrgentSeeLiveActivityExtension" */;
+			buildPhases = (
+				D2FF94E490EE64E99CBC7BD7 /* Sources */,
+				DB0D28CABE627B070293BA1A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9D61672CFD53657E163846A9 /* PBXTargetDependency */,
+			);
+			name = UrgentSeeLiveActivityExtension;
+			packageProductDependencies = (
+			);
+			productName = UrgentSeeLiveActivityExtension;
+			productReference = FA9937EA1E048FA4787965F9 /* UrgentSeeLiveActivityExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		CDC42590CB6AB1A5A7543D43 /* UrgentSeeShared */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9F82D6154B63ABCC0613BF98 /* Build configuration list for PBXNativeTarget "UrgentSeeShared" */;
+			buildPhases = (
+				9BF77A5CD261103A92976D27 /* Sources */,
+				DB2884A51F080F8C3C5D918C /* Copy Swift Objective-C Interface Header */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = UrgentSeeShared;
+			packageProductDependencies = (
+			);
+			productName = UrgentSeeShared;
+			productReference = 39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4EF352E24CC1A4F6C4A577AE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2660;
+			};
+			buildConfigurationList = 5EC42A73820881C11A6B993C /* Build configuration list for PBXProject "UrgentSee" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A15D1B72CF4F128D3603AB90;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 914C592CA01E32778ABF3EDC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				02FF7AC51A18AC4F2DE6678B /* UrgentSee */,
+				8B736AAB2449C1866092E1AA /* UrgentSeeLiveActivityExtension */,
+				CDC42590CB6AB1A5A7543D43 /* UrgentSeeShared */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CEB4972B3CC4C11069347CA1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99436D7EF43F4AD3CF7E71C4 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DB2884A51F080F8C3C5D918C /* Copy Swift Objective-C Interface Header */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(DERIVED_SOURCES_DIR)/$(SWIFT_OBJC_INTERFACE_HEADER_NAME)",
+			);
+			name = "Copy Swift Objective-C Interface Header";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/include/$(PRODUCT_MODULE_NAME)/$(SWIFT_OBJC_INTERFACE_HEADER_NAME)",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "ditto \"${SCRIPT_INPUT_FILE_0}\" \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2D5CADE82333007FB655492A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D325039F21A97760322D00F9 /* APIService.swift in Sources */,
+				C438DCD9A92EB0AAD90263D6 /* E2EEManager.swift in Sources */,
+				44106E60E49DE0F0CAAE9383 /* PushNotificationManager.swift in Sources */,
+				E5620F15A06391DB8A5CB10B /* ReverseAckService.swift in Sources */,
+				EF47D5E1F95FDA2942821124 /* TrustCircleManager.swift in Sources */,
+				E72D4A8792FA6A31356E846B /* TrustCircleView.swift in Sources */,
+				4BA6EED8EB74D6D64E6DE737 /* UrgentSeeApp.swift in Sources */,
+				463B264EC6D55461C93F082E /* UrgentSeeDispatchConsole.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BF77A5CD261103A92976D27 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6078ABEE4EB42A7D497B1976 /* DesignSystem.swift in Sources */,
+				19C1EAFFAB731CC9F1FF0DF9 /* SharedModels.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D2FF94E490EE64E99CBC7BD7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8C9724E1417BD0939B4BD4E7 /* UrgentSeeAttributes.swift in Sources */,
+				44579A3A40F5F097D169C2AE /* UrgentSeeLiveActivityExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		963313011FADC31BD9AFE996 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDC42590CB6AB1A5A7543D43 /* UrgentSeeShared */;
+			targetProxy = 90050593EB0B747D92A71B76 /* PBXContainerItemProxy */;
+		};
+		9D61672CFD53657E163846A9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDC42590CB6AB1A5A7543D43 /* UrgentSeeShared */;
+			targetProxy = 4F5D187033090E19BE9C745C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		239BEB4BCA62C9C7F6C17F25 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BASE = "[AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"SWIFT_VERSION\"): 5.9]";
+				CODE_SIGN_ENTITLEMENTS = UrgentSee/Entitlements/UrgentSee.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 538QNVLWHG;
+				INFOPLIST_FILE = UrgentSee/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSee;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6C02B938E6E9F5449731CC0A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6C824308B58B68A96FEA9223 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BASE = "[AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\"]";
+				CODE_SIGN_ENTITLEMENTS = UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements;
+				DEVELOPMENT_TEAM = 538QNVLWHG;
+				INFOPLIST_FILE = UrgentSeeLiveActivityExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeLiveActivityExtension;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C3FE588768216A3BC0688045 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		DC2E9C4E8511DA3FB5C820C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BASE = "[AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2]";
+				INFOPLIST_FILE = UrgentSee/Shared/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeShared;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E5F7A456135DA33435B02B0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BASE = "[AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\"]";
+				CODE_SIGN_ENTITLEMENTS = UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements;
+				DEVELOPMENT_TEAM = 538QNVLWHG;
+				INFOPLIST_FILE = UrgentSeeLiveActivityExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeLiveActivityExtension;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E97ECCD9C44D2F53DB167F16 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BASE = "[AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"SWIFT_VERSION\"): 5.9]";
+				CODE_SIGN_ENTITLEMENTS = UrgentSee/Entitlements/UrgentSee.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 538QNVLWHG;
+				INFOPLIST_FILE = UrgentSee/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSee;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		EDA87DAC959F6301509619E4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BASE = "[AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2]";
+				INFOPLIST_FILE = UrgentSee/Shared/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeShared;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		10AF5C2322EDB167C0FCD258 /* Build configuration list for PBXNativeTarget "UrgentSee" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				239BEB4BCA62C9C7F6C17F25 /* Debug */,
+				E97ECCD9C44D2F53DB167F16 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5EC42A73820881C11A6B993C /* Build configuration list for PBXProject "UrgentSee" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3FE588768216A3BC0688045 /* Debug */,
+				6C02B938E6E9F5449731CC0A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9F82D6154B63ABCC0613BF98 /* Build configuration list for PBXNativeTarget "UrgentSeeShared" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC2E9C4E8511DA3FB5C820C9 /* Debug */,
+				EDA87DAC959F6301509619E4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E0FB07A2A72BD4E0C6C98C12 /* Build configuration list for PBXNativeTarget "UrgentSeeLiveActivityExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C824308B58B68A96FEA9223 /* Debug */,
+				E5F7A456135DA33435B02B0E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4EF352E24CC1A4F6C4A577AE /* Project object */;
+}

@@ -1,0 +1,73 @@
+name: UrgentSee
+options:
+  bundleIdPrefix: com.urgentsee
+
+targets:
+  UrgentSee:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.2"
+    sources:
+      - UrgentSee/App
+      - UrgentSee/Core
+      - UrgentSee/Assets.xcassets
+    settings:
+      BASE: 
+        SWIFT_VERSION: 5.9
+        IPHONEOS_DEPLOYMENT_TARGET: 16.2
+        DEVELOPMENT_TEAM: J4Z7WCCAGB
+        CODE_SIGN_STYLE: Automatic
+    info:
+      path: UrgentSee/Info.plist
+      properties:
+        UILaunchScreen:
+          UIColorName: LaunchScreenBackground
+          UIImageName: LaunchScreenIcon
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+        UIUserInterfaceStyle: Dark
+    entitlements:
+      path: UrgentSee/Entitlements/UrgentSee.entitlements
+      properties:
+        aps-environment: development
+    dependencies:
+      - target: UrgentSeeShared
+        embed: false
+    
+  UrgentSeeLiveActivityExtension:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "16.2"
+    sources:
+      - UrgentSeeLiveActivityExtension
+    settings:
+      BASE:
+        SWIFT_VERSION: 5.9
+        IPHONEOS_DEPLOYMENT_TARGET: 16.2
+        DEVELOPMENT_TEAM: J4Z7WCCAGB
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+    info:
+      path: UrgentSeeLiveActivityExtension/Info.plist
+    entitlements:
+      path: UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements
+    dependencies:
+      - target: UrgentSeeShared
+        embed: false
+
+  UrgentSeeShared:
+    type: library.static
+    platform: iOS
+    deploymentTarget: "16.2"
+    sources:
+      - UrgentSee/Shared
+    settings:
+      BASE:
+        SWIFT_VERSION: 5.9
+        IPHONEOS_DEPLOYMENT_TARGET: 16.2
+        DEVELOPMENT_TEAM: J4Z7WCCAGB
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+    info:
+      path: UrgentSee/Shared/Info.plist

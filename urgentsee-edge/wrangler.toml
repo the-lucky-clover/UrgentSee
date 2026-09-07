@@ -1,0 +1,24 @@
+name = "urgentsee-edge"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+[vars]
+# JWT_SECRET should be set via: wrangler secret put JWT_SECRET
+
+[durable_objects]
+bindings = [
+  { name = "RATE_LIMITER_DO", class_name = "RateLimiterDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiterDO"]
+
+[[kv_namespaces]]
+binding = "DEVICE_TOKENS_KV"
+id = "12c1bc6ac0f94b94b34e3bb0ea8cee72"
+
+[[d1_databases]]
+binding = "READRUSH_DB"
+database_name = "urgentsee-db"
+database_id = "c82eff61-a76d-4ff5-83a0-8c94cda40abf"

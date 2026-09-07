@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">UrgentSee</string>
+    <string name="default_notification_channel_id">urgentsee_critical</string>
+    <string name="default_notification_channel_name">UrgentSee Critical Alerts</string>
+    <string name="app_server_url">https://api.urgentsee.app/v1/</string>
+    <integer name="google_play_services_version">12451000</integer>
+</resources>
