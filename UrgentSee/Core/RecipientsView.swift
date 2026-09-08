@@ -238,16 +238,22 @@ struct RecipientsView: View {
                     .environmentObject(settings)
             }
             .sheet(isPresented: $showInviteSheet) {
-                InviteSheetView(onInvite: { userId in
-                    Task {
-                        do {
-                            try await trustCircleManager.inviteUser(palId: userId)
-                        } catch {
-                            errorMessage = error.localizedDescription
-                            showError = true
+                ClaimCodeSheet(
+                    isPresented: $showInviteSheet,
+                    code: $inviteUserId,
+                    onClaim: { code in
+                        Task {
+                            do {
+                                _ = try await trustCircleManager.claimPairingCode(code)
+                                inviteUserId = ""
+                            } catch {
+                                errorMessage = error.localizedDescription
+                                showError = true
+                            }
                         }
                     }
-                })
+                )
+                .environmentObject(settings)
             }
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
