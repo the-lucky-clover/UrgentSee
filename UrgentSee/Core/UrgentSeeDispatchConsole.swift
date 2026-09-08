@@ -75,6 +75,8 @@ struct UrgentSeeDispatchConsole: View {
     @State private var dispatchToastMessage = ""
     @State private var dispatchToastIcon = "checkmark.circle.fill"
     @State private var dispatchToastColor = Color.green
+    @State private var showNotice = false
+    @State private var noticeMessage = ""
 
     @StateObject private var apiService = APIService.shared
     @StateObject private var recipientsManager = TrustCircleManager.shared
@@ -176,11 +178,19 @@ struct UrgentSeeDispatchConsole: View {
                     }
                 }
             }
-            .onAppear { triggerEntranceAnimations() }
+            .onAppear {
+                triggerEntranceAnimations()
+                Task { await recipientsManager.loadTrustCircle() }
+            }
             .alert("Dispatch Failed", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage ?? "Unknown error occurred")
+            }
+            .alert("Need Attention", isPresented: $showNotice) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(noticeMessage)
             }
             .sheet(isPresented: $showTemplateManager) {
                 TemplateManagerView(
@@ -580,9 +590,9 @@ struct UrgentSeeDispatchConsole: View {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Image(systemName: "bolt.shield.fill")
+                    Image(systemName: "paperplane.fill")
                         .font(.system(size: settings.textSize * 0.75, weight: .bold))
-                    Text("FORCE FRONT & CENTER")
+                    Text("SEND MESSAGE")
                         .font(.system(size: settings.textSize * 0.6, weight: .black, design: .monospaced))
                 }
             }
@@ -599,8 +609,8 @@ struct UrgentSeeDispatchConsole: View {
             .cornerRadius(18)
             .shadow(color: Color.red.opacity(0.6), radius: 18, x: 0, y: 6)
         }
-        .disabled(!isReady)
-        .opacity(isReady ? 1.0 : 0.4)
+        .disabled(isDispatching)
+        .opacity((isReady ? 1.0 : 0.55))
         .opacity(animatedIn[5] ? 1 : 0)
         .scaleEffect(animatedIn[5] ? 1 : 0.9)
         .offset(y: animatedIn[5] ? 0 : 70)
@@ -725,7 +735,21 @@ struct UrgentSeeDispatchConsole: View {
     }
 
     private func executeDispatch() {
-        guard let contact = selectedContact else { return }
+        guard apiService.isAuthenticated else {
+            noticeMessage = "Connect this device first: Recipients tab → gear → Connect This Device."
+            showNotice = true
+            return
+        }
+        guard let contact = selectedContact else {
+            noticeMessage = "Select a recipient first. Recipients tab → gear → Add a Recipient, then choose them here."
+            showNotice = true
+            return
+        }
+        guard !messageText.isEmpty else {
+            noticeMessage = "Type a message before sending."
+            showNotice = true
+            return
+        }
 
         dismissKeyboard()
 

@@ -278,9 +278,9 @@ struct AuthSettingsView: View {
                         .padding(.vertical, 8)
 
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("UrgentSee pairs devices over your Cloudflare worker. Connect this device, then share your code to add a recipient, or enter a code to add someone else.")
-                                .font(.system(size: settings.textSize * 0.55))
-                                .foregroundColor(.secondary)
+                                Text("How pairing works:\n1. On their device (the recipient), go to Recipients tab → tap the gear → Connect This Device → Show My Pairing Code.\n2. On this device, tap Add a Recipient and enter that code.\nYou will both see each other as recipients immediately.")
+                                    .font(.system(size: settings.textSize * 0.5))
+                                    .foregroundColor(.secondary)
 
                             if isBusy {
                                 ProgressView()
@@ -332,7 +332,7 @@ struct AuthSettingsView: View {
                                     .padding(10)
                                     .background(Color.blue.opacity(0.2))
                                     .cornerRadius(12)
-                                Text("Have them tap Add a Recipient and enter this code. Expires in 15 minutes.")
+                                Text("Give this code to your recipient. On their device: Recipients tab → ADD RECIPIENT → enter this code. Expires in 15 minutes.")
                                     .font(.system(size: settings.textSize * 0.4))
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
@@ -472,7 +472,7 @@ struct ClaimCodeSheet: View {
                 Text("Add a Recipient")
                     .font(.system(size: settings.textSize * 1.2, weight: .bold))
 
-                Text("Ask them to tap Show My Pairing Code, then enter the code here.")
+                Text("Ask the recipient to go to their Recipients tab, tap the gear, tap Show My Pairing Code, then enter their 6-character code here. You'll both be added as recipients.")
                     .font(.system(size: settings.textSize * 0.5))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

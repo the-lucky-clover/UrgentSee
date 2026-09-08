@@ -11,6 +11,8 @@ struct RecipientsView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var animatedIn: [Bool] = Array(repeating: false, count: 4)
+    @State private var pairCode = ""
+    @State private var isBusy = false
     
     var body: some View {
         NavigationView {
@@ -54,51 +56,121 @@ struct RecipientsView: View {
                         .opacity(animatedIn[0] ? 1 : 0)
                         .offset(y: animatedIn[0] ? 0 : -20)
                         
-                        // Invite Button
-                        Button(action: { showInviteSheet = true }) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "person.badge.plus.fill")
-                                    .font(.system(size: settings.textSize * 0.7, weight: .bold))
-                                 Text("ADD RECIPIENT")
-                                    .font(.system(size: settings.textSize * 0.6, weight: .black, design: .monospaced))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, settings.textSize * 0.7)
-                            .background(
-                                LinearGradient(
-                                    colors: [.blue, Color.purple],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
-                            .shadow(color: Color.blue.opacity(0.5), radius: 15, x: 0, y: 6)
-                        }
-                        .disabled(!apiService.isAuthenticated)
-                        .opacity((animatedIn[1] ? 1 : 0) * (apiService.isAuthenticated ? 1 : 0.45))
-                        .scaleEffect(animatedIn[1] ? 1 : 0.9)
-                        .offset(y: animatedIn[1] ? 0 : 30)
-                        
-                        if !apiService.isAuthenticated {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("ACCOUNT")
-                                    .font(.system(size: settings.textSize * 0.35, weight: .bold, design: .monospaced))
-                                    .foregroundColor(.orange)
-                                Text("Connect your account in Settings (gear) to add recipients and send alerts.")
-                                    .font(.system(size: settings.textSize * 0.45))
+                        // Role cards
+                        if apiService.isAuthenticated {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("WHO IS THIS DEVICE?")
+                                    .font(.system(size: settings.textSize * 0.4, weight: .black, design: .monospaced))
                                     .foregroundColor(.gray)
-                                Button(action: { showSettings = true }) {
-                                    Text("OPEN SETTINGS")
-                                        .font(.system(size: settings.textSize * 0.5, weight: .black, design: .monospaced))
+
+                                Button(action: { showInviteSheet = true }) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "person.badge.plus.fill")
+                                            .font(.system(size: settings.textSize * 0.6, weight: .bold))
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("I'M THE MASTER — ADD A RECIPIENT")
+                                                .font(.system(size: settings.textSize * 0.45, weight: .black, design: .monospaced))
+                                            Text("Enter the code shown on their device")
+                                                .font(.system(size: settings.textSize * 0.35))
+                                                .foregroundColor(.white.opacity(0.8))
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: settings.textSize * 0.4))
+                                    }
+                                    .padding(.horizontal, settings.textSize * 0.5)
+                                    .padding(.vertical, settings.textSize * 0.45)
+                                    .background(
+                                        LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .cornerRadius(14)
+                                }
+                                .buttonStyle(.plain)
+
+                                Button(action: { Task { await generatePairCode() } }) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "qrcode.viewfinder")
+                                            .font(.system(size: settings.textSize * 0.6, weight: .bold))
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("I'M THE RECIPIENT — SHARE MY CODE")
+                                                .font(.system(size: settings.textSize * 0.45, weight: .black, design: .monospaced))
+                                            Text("Give this code to the master to pair")
+                                                .font(.system(size: settings.textSize * 0.35))
+                                                .foregroundColor(.white.opacity(0.8))
+                                        }
+                                        Spacer()
+                                        if isBusy { ProgressView() }
+                                    }
+                                    .padding(.horizontal, settings.textSize * 0.5)
+                                    .padding(.vertical, settings.textSize * 0.45)
+                                    .background(
+                                        LinearGradient(colors: [.green, .teal], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .cornerRadius(14)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(isBusy)
+                            }
+                            .glassmorphicBento(glowColor: .blue)
+                            .opacity(animatedIn[1] ? 1 : 0)
+                            .scaleEffect(animatedIn[1] ? 1 : 0.9)
+                            .offset(y: animatedIn[1] ? 0 : 30)
+                        } else {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("GET STARTED")
+                                    .font(.system(size: settings.textSize * 0.4, weight: .black, design: .monospaced))
+                                    .foregroundColor(.orange)
+                                Text("1. Connect this device\n2. Master: ADD A RECIPIENT using a code\n   Recipient: SHARE MY CODE")
+                                    .font(.system(size: settings.textSize * 0.45))
+                                    .foregroundColor(.white.opacity(0.85))
+                                    .lineSpacing(4)
+
+                                if isBusy {
+                                    ProgressView().frame(maxWidth: .infinity)
+                                } else {
+                                    Button(action: { connectThisDevice() }) {
+                                        HStack {
+                                            Image(systemName: "link.circle.fill")
+                                            Text("CONNECT THIS DEVICE")
+                                                .font(.system(size: settings.textSize * 0.5, weight: .black, design: .monospaced))
+                                        }
                                         .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 10)
-                                        .background(Color.orange.opacity(0.25))
-                                        .foregroundColor(.orange)
-                                        .cornerRadius(10)
+                                        .padding(.vertical, settings.textSize * 0.45)
+                                        .background(Color.orange)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(14)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
                             .glassmorphicBento(glowColor: .orange)
+                            .opacity(animatedIn[1] ? 1 : 0)
+                            .scaleEffect(animatedIn[1] ? 1 : 0.9)
+                            .offset(y: animatedIn[1] ? 0 : 30)
+                        }
+
+                        // Pairing code display (recipient shares this with master)
+                        if !pairCode.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("SHARE THIS CODE WITH THE MASTER")
+                                    .font(.system(size: settings.textSize * 0.4, weight: .black, design: .monospaced))
+                                    .foregroundColor(.green)
+                                Text(pairCode)
+                                    .font(.system(size: settings.textSize * 1.7, weight: .black, design: .monospaced))
+                                    .tracking(6)
+                                    .foregroundColor(.white)
+                                    .padding(12)
+                                    .background(Color.green.opacity(0.2))
+                                    .cornerRadius(12)
+                                Text("On the master device: ADD A RECIPIENT → enter this code. Expires in 15 minutes.")
+                                    .font(.system(size: settings.textSize * 0.4))
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                Button("Hide Code", action: { pairCode = "" })
+                                    .font(.system(size: settings.textSize * 0.45))
+                                    .foregroundColor(.gray)
+                            }
+                            .glassmorphicBento(glowColor: .green)
                         }
                         
                         // Active Members
@@ -263,8 +335,37 @@ struct RecipientsView: View {
         }
     }
     
-    private func triggerEntranceAnimations() {
-        for index in 0..<animatedIn.count {
+    private func connectThisDevice() {
+        isBusy = true
+        Task {
+            do {
+                try await apiService.bootstrapAccount()
+                isBusy = false
+                await trustCircleManager.loadTrustCircle()
+            } catch {
+                isBusy = false
+                errorMessage = "Could not connect: " + error.localizedDescription
+                showError = true
+            }
+        }
+    }
+
+    private func generatePairCode() {
+        isBusy = true
+        Task {
+            do {
+                let code = try await trustCircleManager.requestPairingCode()
+                pairCode = code
+                isBusy = false
+            } catch {
+                isBusy = false
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+
+    private func triggerEntranceAnimations() {        for index in 0..<animatedIn.count {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) {
                     animatedIn[index] = true
