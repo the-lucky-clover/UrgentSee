@@ -219,7 +219,7 @@ final class E2EEManager: ObservableObject {
     /// Registers our public key with the backend
     func registerPublicKey() async throws {
         guard let publicKeyBase64 = getPublicKeyBase64(),
-              let userId = APIService.shared.currentUserId,
+              APIService.shared.currentUserId != nil,
               let token = APIService.shared.loadToken() else {
             throw E2EEError.notAuthenticated
         }

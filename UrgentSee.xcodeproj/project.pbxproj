@@ -26,10 +26,6 @@
 		895B85BC77B944BFB41AB4334CFED853 /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3777948E294C4616B256C60F99137639 /* AccessibilitySettings.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7 /* AuthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6 /* AuthSettingsView.swift */; };
 		D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8 /* SettingsView.swift */; };
-		B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7 /* TTLPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6 /* TTLPickerView.swift */; };
-		D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9 /* MessageEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8 /* MessageEditorView.swift */; };
-		F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1 /* DispatchProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0 /* DispatchProgressView.swift */; };
-		B2C3D4E5F6A7B8C9D0E1F2A3B4C5D7E8 /* DNDOverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D7 /* DNDOverrideView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -318,10 +314,6 @@
 				E72D4A8792FA6A31356E846B /* RecipientsView.swift in Sources */,
 				4BA6EED8EB74D6D64E6DE737 /* UrgentSeeApp.swift in Sources */,
 				463B264EC6D55461C93F082E /* UrgentSeeDispatchConsole.swift in Sources */,
-				B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7 /* TTLPickerView.swift in Sources */,
-				D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9 /* MessageEditorView.swift in Sources */,
-				F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1 /* DispatchProgressView.swift in Sources */,
-				B2C3D4E5F6A7B8C9D0E1F2A3B4C5D7E8 /* DNDOverrideView.swift in Sources */,
 
 
 				B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7 /* AuthSettingsView.swift in Sources */,
