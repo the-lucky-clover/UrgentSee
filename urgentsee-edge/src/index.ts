@@ -100,6 +100,42 @@ function base64UrlEncode(data: Uint8Array): string {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+// Cache one APNs provider token in KV and reuse it across isolates (~55 min).
+// Apple rate-limits provider token generation to ~1 per 20 minutes, so signing
+// per-request (or per-isolate) triggers 429 TooManyProviderTokenUpdates.
+const apnsTokenCache = new Map<string, { token: string; expiresAt: number }>();
+
+async function cachedAPNsAuthToken(env: Env): Promise<string> {
+  const kvKey = `apns_provider_token:${env.APNS_KEY_ID}`;
+  const now = Date.now();
+
+  // Fast path: in-isolate cache.
+  const local = apnsTokenCache.get(kvKey);
+  if (local && local.expiresAt - now > 5 * 60 * 1000) {
+    return local.token;
+  }
+
+  // Shared path: KV cache written by whichever isolate generated the current token.
+  const stored = await env.DEVICE_TOKENS_KV.get(kvKey);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as { token: string; expiresAt: number };
+      if (parsed.expiresAt - now > 5 * 60 * 1000) {
+        apnsTokenCache.set(kvKey, parsed);
+        return parsed.token;
+      }
+    } catch {
+      // fall through and regenerate
+    }
+  }
+
+  const token = await createAPNsAuthToken(env);
+  const entry = { token, expiresAt: now + 55 * 60 * 1000 };
+  apnsTokenCache.set(kvKey, entry);
+  await env.DEVICE_TOKENS_KV.put(kvKey, JSON.stringify(entry), { expirationTtl: 3600 });
+  return token;
+}
+
 async function createJWT(sub: string, secret: string, ttlSeconds: number): Promise<string> {
   const header = { alg: 'HS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
@@ -124,6 +160,42 @@ async function createJWT(sub: string, secret: string, ttlSeconds: number): Promi
   );
 
   return `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
+}
+
+function pemToDer(pem: string): Uint8Array {
+  const b64 = pem
+    .replace(/-----BEGIN [^-]+-----/g, '')
+    .replace(/-----END [^-]+-----/g, '')
+    .replace(/\s+/g, '');
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// Signs an APNs provider token (ES256) valid for ~50 minutes.
+async function createAPNsAuthToken(env: Env): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    pemToDer(env.APNS_AUTH_KEY) as unknown as BufferSource,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+
+  const header = { alg: 'ES256', kid: env.APNS_KEY_ID };
+  const payload = { iss: env.APNS_TEAM_ID, iat: Math.floor(Date.now() / 1000) };
+  const headerB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
+  const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(payload)));
+  const signingInput = `${headerB64}.${payloadB64}`;
+
+  const sig = await crypto.subtle.sign(
+    { name: 'ECDSA', hash: 'SHA-256' },
+    key,
+    new TextEncoder().encode(signingInput) as unknown as BufferSource
+  );
+
+  return `${signingInput}.${base64UrlEncode(new Uint8Array(sig))}`;
 }
 
 // MARK: - Device bootstrap (issues real server-signed JWT)
@@ -678,36 +750,46 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
     await scheduleUntilReceivedRetry(env, alertId, senderId, recipientId, messageText, isCritical, ttlMinutes);
   }
 
+  // Standard alert notification so the recipient's phone surfaces it immediately
+  // Dev env: use time-sensitive so no Critical Alert entitlement is required to display.
+  const useCritical = isCritical && env.APNS_ENV === 'production';
   const apnsPayload = {
     aps: {
-      timestamp: Math.floor(Date.now() / 1000),
-      event: 'update',
-      'content-state': {
-        alertID: alertId,
-        senderName: senderName || 'Trusted Pal',
-        rawMessageText: previewText, // Only show preview on lock screen
-        timestamp: new Date().toISOString(),
-        expirationDate: expiresAt,
+      alert: {
+        title: senderName || 'UrgentSee',
+        body: useCritical
+          ? 'URGENT message from ' + (senderName || 'a recipient')
+          : 'Message from ' + (senderName || 'a recipient'),
       },
-      sound: isCritical
+      sound: useCritical
         ? {
             critical: 1,
-            name: 'missile_warning_override.caf',
+            name: 'default',
             volume: 1.0,
           }
         : 'default',
-      'interruption-level': isCritical ? 'critical' : 'time-sensitive',
+      'interruption-level': useCritical ? 'critical' : 'time-sensitive',
+      'thread-id': alertId,
     },
+    alertId,
+    senderName: senderName || '',
+    rawMessagePreview: previewText,
+    status: 'PUSHED',
   };
 
-  const apnsTopic = `${env.APNS_TOPIC}.push-type.liveactivity`;
-  const apnsUrl = `https://api.development.push.apple.com/3/device/${recipientApnsToken}`;
+  const apnsHost = env.APNS_ENV === 'production' ? 'api.push.apple.com' : 'api.development.push.apple.com';
+  const apnsTopic = env.APNS_TOPIC || 'com.urgentsee.UrgentSee';
+  const apnsUrl = `https://${apnsHost}/3/device/${recipientApnsToken}`;
+  const apnsAuth = await cachedAPNsAuthToken(env);
+  const apnsSigPart = apnsAuth.split('.').pop() ?? '';
+  console.log(`[UrgentSee] APNs debug: env=${env.APNS_ENV} host=${apnsHost} teamLen=${env.APNS_TEAM_ID.length} sigLen=${apnsSigPart.length}`);
 
   const apnsResponse = await fetch(apnsUrl, {
     method: 'POST',
     headers: {
+      authorization: `bearer ${apnsAuth}`,
       'apns-topic': apnsTopic,
-      'apns-push-type': 'liveactivity',
+      'apns-push-type': 'alert',
       'apns-priority': '10',
       'apns-expiration': `${Math.floor(Date.now() / 1000) + ttlMinutes * 60}`,
       'content-type': 'application/json',
@@ -716,6 +798,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
   });
 
   const apnsSuccess = apnsResponse.ok;
+  console.log(`[UrgentSee] APNs response status=${apnsResponse.status}`);
   
   if (!apnsSuccess) {
     const errorText = await apnsResponse.text();

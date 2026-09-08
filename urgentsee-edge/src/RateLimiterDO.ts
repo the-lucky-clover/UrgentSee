@@ -2,7 +2,7 @@ export class RateLimiterDO {
   state: DurableObjectState;
   
   private readonly windowMs: number = 60 * 60 * 1000;
-  private readonly maxDispatchesPerWindow: number = 3;
+  private readonly maxDispatchesPerWindow: number = 100;
 
   constructor(state: DurableObjectState) {
     this.state = state;
