@@ -17,15 +17,16 @@ struct UrgentSeeApp: App {
                         Label("Dispatch", systemImage: "bolt.shield.fill")
                     }
                 
-                AuthSettingsView()
+                RecipientsView()
                     .tabItem {
-                        Label("Settings", systemImage: "gearshape.fill")
+                        Label("Recipients", systemImage: "person.2.fill")
                     }
             }
             .environmentObject(accessibilitySettings)
             .preferredColorScheme(.dark)
             .onAppear {
                 Task {
+                    await apiService.bootstrapAccountIfNeeded()
                     await pushManager.requestAuthorization()
                     await apiService.registerPublicKeyIfNeeded()
                     await trustCircleManager.sendHeartbeat()

@@ -653,7 +653,7 @@ struct UrgentSeeDispatchConsole: View {
             Text("Authentication Required")
                 .font(.system(size: settings.textSize * 0.45, weight: .bold, design: .monospaced))
                 .foregroundColor(.orange)
-            Text("Go to Settings tab to connect your account")
+            Text("Go to Recipients tab to connect your account")
                 .font(.system(size: settings.textSize * 0.35))
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)

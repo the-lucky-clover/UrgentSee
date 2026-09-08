@@ -166,6 +166,69 @@ final class TrustCircleManager: ObservableObject {
     
     // MARK: - Heartbeat / App Installation Tracking
     
+    // MARK: - Pairing (master pairs a recipient)
+
+    /// Requests a short-lived pairing code that this device can share so another
+    /// device can add us as a recipient. Returns the 6-character code.
+    func requestPairingCode() async throws -> String {
+        guard let token = apiService.loadToken() else { throw APIError.notAuthenticated }
+        guard let url = URL(string: "\(apiService.baseURL)/v1/pairing/code") else { throw APIError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = Data("{}".utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+
+        if httpResponse.statusCode == 401 {
+            apiService.clearToken()
+            throw APIError.unauthorized
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(message: "Failed to create pairing code", statusCode: httpResponse.statusCode)
+        }
+
+        struct CodeResponse: Codable { let code: String }
+        let result = try JSONDecoder().decode(CodeResponse.self, from: data)
+        return result.code
+    }
+
+    /// Claims a pairing code from another device, adding them as a recipient
+    /// in both directions. Returns the paired device's user id.
+    func claimPairingCode(_ code: String) async throws -> String {
+        guard let token = apiService.loadToken() else { throw APIError.notAuthenticated }
+        guard let url = URL(string: "\(apiService.baseURL)/v1/pairing/claim") else { throw APIError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let body = ["code": code]
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+
+        switch httpResponse.statusCode {
+        case 200:
+            struct ClaimResponse: Codable { let pairedWith: String }
+            let result = try JSONDecoder().decode(ClaimResponse.self, from: data)
+            await loadTrustCircle()
+            return result.pairedWith
+        case 401:
+            apiService.clearToken()
+            throw APIError.unauthorized
+        case 404:
+            throw APIError.serverError(message: "Invalid or expired pairing code", statusCode: 404)
+        default:
+            throw APIError.serverError(message: "Failed to pair", statusCode: httpResponse.statusCode)
+        }
+    }
+
     /// Call this on app launch to ping the backend that the app is still installed
     func sendHeartbeat() async {
         guard apiService.isAuthenticated else { return }

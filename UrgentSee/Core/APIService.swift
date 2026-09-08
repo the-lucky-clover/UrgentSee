@@ -17,11 +17,11 @@ final class APIService: ObservableObject {
         if let configURL = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String {
             self.baseURL = configURL
         } else {
-            self.baseURL = "https://api.urgentsee.app"
+            self.baseURL = "https://urgentsee-edge.pounds1.workers.dev"
         }
         
         // Load stored user ID
-        if let userId = UserDefaults(suiteName: "group.com.urgentsee.app")?.string(forKey: userIdKey) {
+        if let userId = UserDefaults.standard.string(forKey: userIdKey) {
             self.currentUserId = userId
         }
         
@@ -29,18 +29,79 @@ final class APIService: ObservableObject {
         self.isAuthenticated = loadToken() != nil
     }
     
+    // MARK: - Device Identity
+    
+    /// Stable identity for THIS device. Persisted so a reinstall keeps the same account.
+    var deviceIdentity: String {
+        if let id = UserDefaults.standard.string(forKey: "device_identity") {
+            return id
+        }
+        let id = UUID().uuidString.lowercased()
+        UserDefaults.standard.set(id, forKey: "device_identity")
+        return id
+    }
+    
+    var deviceDisplayName: String {
+        get { UserDefaults.standard.string(forKey: "device_display_name") ?? "UrgentSee Device" }
+        set { UserDefaults.standard.set(newValue, forKey: "device_display_name") }
+    }
+    
+    /// Registers this device with the UrgentSee worker and stores the server-issued token.
+    func bootstrapAccountIfNeeded() async {
+        guard !isAuthenticated else { return }
+        do {
+            try await bootstrapAccount()
+        } catch {
+            print("[UrgentSee] Bootstrap failed: \(error.localizedDescription)")
+        }
+    }
+    
+    func bootstrapAccount() async throws {
+        guard let publicKey = E2EEManager.shared.getPublicKeyBase64() else {
+            throw APIError.serverError(message: "No device key available", statusCode: 500)
+        }
+        
+        guard let url = URL(string: "\(baseURL)/v1/device/register") else {
+            throw APIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: String] = [
+            "deviceId": deviceIdentity,
+            "publicKey": publicKey,
+            "displayName": deviceDisplayName
+        ]
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(message: "Device registration failed", statusCode: httpResponse.statusCode)
+        }
+        
+        struct RegisterResponse: Codable {
+            let userId: String
+            let token: String
+        }
+        let result = try JSONDecoder().decode(RegisterResponse.self, from: data)
+        setToken(result.token, userId: result.userId)
+    }
+    
     // MARK: - Token Management
     
     func setToken(_ token: String, userId: String) {
         saveToken(token)
-        UserDefaults(suiteName: "group.com.urgentsee.app")?.set(userId, forKey: userIdKey)
+        UserDefaults.standard.set(userId, forKey: userIdKey)
         self.currentUserId = userId
         self.isAuthenticated = true
     }
     
     func clearToken() {
         deleteToken()
-        UserDefaults(suiteName: "group.com.urgentsee.app")?.removeObject(forKey: userIdKey)
+        UserDefaults.standard.removeObject(forKey: userIdKey)
         self.currentUserId = nil
         self.isAuthenticated = false
     }

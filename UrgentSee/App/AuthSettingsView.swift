@@ -230,7 +230,12 @@ struct AuthSettingsView: View {
     @State private var alertMessage = ""
     @State private var showingTokenInfo = false
     @State private var showingAuthProviderSetup = false
-    
+    @State private var showingPairCode = false
+    @State private var pairCode = ""
+    @State private var isBusy = false
+    @State private var claimSheetPresented = false
+    @State private var claimCode = ""
+
     var body: some View {
         NavigationView {
             Form {
@@ -249,34 +254,16 @@ struct AuthSettingsView: View {
                             }
                         }
                         .padding(.vertical, 8)
-                        
+
                         Button(action: { showingTokenInfo = true }) {
                             Label("Token Info", systemImage: "info.circle")
                                 .font(.system(size: settings.textSize * 0.7, weight: .medium))
                         }
                         .foregroundColor(.blue)
                         .padding(.vertical, 4)
-                        
-                        Button("Refresh Token") {
-                            Task {
-                                do {
-                                    try await apiService.refreshTokenIfNeeded()
-                                    alertMessage = "Token refreshed"
-                                    showingAlert = true
-                                } catch {
-                                    alertMessage = "Failed to refresh: \(error.localizedDescription)"
-                                    showingAlert = true
-                                }
-                            }
-                        }
-                        .foregroundColor(.orange)
-                        .font(.system(size: settings.textSize * 0.7, weight: .medium))
-                        .padding(.vertical, 4)
-                        
+
                         Button("Disconnect") {
-                            Task {
-                                try? await apiService.signOutWithProvider()
-                            }
+                            apiService.clearToken()
                         }
                         .foregroundColor(.red)
                         .font(.system(size: settings.textSize * 0.7, weight: .medium))
@@ -289,70 +276,91 @@ struct AuthSettingsView: View {
                                 .font(.system(size: settings.textSize * 0.75, weight: .semibold))
                         }
                         .padding(.vertical, 8)
-                        
+
                         VStack(alignment: .leading, spacing: 12) {
-                            if APIService.authProvider != nil {
-                                Text("Auth provider configured. Tap to sign in.")
-                                    .font(.system(size: settings.textSize * 0.65))
-                                    .foregroundColor(.secondary)
-                                
-                                Button("Sign In with Provider") {
-                                    Task {
-                                        do {
-                                            try await apiService.authenticateWithProvider()
-                                            alertMessage = "Signed in successfully"
-                                            showingAlert = true
-                                        } catch {
-                                            alertMessage = "Sign in failed: \(error.localizedDescription)"
-                                            showingAlert = true
-                                        }
-                                    }
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .font(.system(size: settings.textSize * 0.7, weight: .semibold))
-                                .frame(maxWidth: .infinity)
+                            Text("UrgentSee pairs devices over your Cloudflare worker. Connect this device, then share your code to add a recipient, or enter a code to add someone else.")
+                                .font(.system(size: settings.textSize * 0.55))
+                                .foregroundColor(.secondary)
+
+                            if isBusy {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
                             } else {
-                                Text("No auth provider configured.")
-                                    .font(.system(size: settings.textSize * 0.65))
-                                    .foregroundColor(.secondary)
-                                
-                                Button("Configure Auth Provider") {
-                                    showingAuthProviderSetup = true
+                                Button(action: connectDevice) {
+                                    HStack {
+                                        Image(systemName: "link.circle.fill")
+                                        Text("Connect This Device")
+                                            .font(.system(size: settings.textSize * 0.7, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
                                 }
                                 .buttonStyle(.borderedProminent)
-                                .font(.system(size: settings.textSize * 0.7, weight: .semibold))
-                                .frame(maxWidth: .infinity)
                             }
                         }
                         .padding(.vertical, 8)
+                    }
+                }
+
+                if apiService.isAuthenticated {
+                    Section(header: Text("PAIRING")) {
+                        Button(action: { Task { await generatePairingCode() } }) {
+                            HStack {
+                                Label("Show My Pairing Code", systemImage: "qrcode.viewfinder")
+                                Spacer()
+                                if isBusy { ProgressView() }
+                            }
+                            .font(.system(size: settings.textSize * 0.7, weight: .medium))
+                        }
+                        .disabled(isBusy)
+                        .foregroundColor(.blue)
+
+                        Button(action: { claimSheetPresented = true }) {
+                            Label("Add a Recipient (enter their code)", systemImage: "person.badge.plus")
+                                .font(.system(size: settings.textSize * 0.7, weight: .medium))
+                        }
+                        .foregroundColor(.blue)
+
+                        if !pairCode.isEmpty {
+                            VStack(spacing: 8) {
+                                Text("SHARE THIS CODE")
+                                    .font(.system(size: settings.textSize * 0.45, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                                Text(pairCode)
+                                    .font(.system(size: settings.textSize * 1.6, weight: .black, design: .monospaced))
+                                    .tracking(6)
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(Color.blue.opacity(0.2))
+                                    .cornerRadius(12)
+                                Text("Have them tap Add a Recipient and enter this code. Expires in 15 minutes.")
+                                    .font(.system(size: settings.textSize * 0.4))
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                Button("Hide Code", action: { pairCode = "" })
+                                    .font(.system(size: settings.textSize * 0.45))
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.vertical, 6)
+                        }
+                    }
+
+                    Section(header: Text("RECIPIENTS")) {
+                        NavigationLink("Manage Recipients (\(recipientsManager.activeMembers.count))") {
+                            TrustCircleListView()
+                        }
+                        .font(.system(size: settings.textSize * 0.7))
+
+                        Button("Refresh Recipients") {
+                            Task { await recipientsManager.loadTrustCircle() }
+                        }
+                        .font(.system(size: settings.textSize * 0.6))
+                        .foregroundColor(.blue)
                     }
                 }
                 
                 Section(header: Text("TEXT SIZE")) {
                     Stepper("\(Int(settings.textSize)) pt", value: $settings.textSize, in: 20...60)
                         .foregroundColor(.primary)
-                }
-                
-                Section(header: Text("RECIPIENTS")) {
-                    NavigationLink("Manage Recipients (\(recipientsManager.activeMembers.count))") {
-                        TrustCircleListView()
-                    }
-                    .font(.system(size: settings.textSize * 0.7))
-                    
-                    Button("Invite New Recipient") {
-                        Task {
-                            do {
-                                try await recipientsManager.inviteUser(palId: userId)
-                                alertMessage = "Invite sent successfully"
-                                showingAlert = true
-                            } catch {
-                                alertMessage = error.localizedDescription
-                                showingAlert = true
-                            }
-                        }
-                    }
-                    .foregroundColor(.red)
-                    .font(.system(size: settings.textSize * 0.7))
                 }
                 
                 Section(header: Text("DISPLAY")) {
@@ -392,12 +400,110 @@ struct AuthSettingsView: View {
                     .environmentObject(apiService)
                     .environmentObject(settings)
             }
+            .sheet(isPresented: $claimSheetPresented) {
+                ClaimCodeSheet(
+                    isPresented: $claimSheetPresented,
+                    code: $claimCode,
+                    onClaim: { code in
+                        Task {
+                            do {
+                                _ = try await recipientsManager.claimPairingCode(code)
+                                claimCode = ""
+                                alertMessage = "Paired! Recipient added."
+                                showingAlert = true
+                            } catch {
+                                alertMessage = error.localizedDescription
+                                showingAlert = true
+                            }
+                        }
+                    }
+                )
+                .environmentObject(settings)
+            }
         }
+    }
 
+    private func connectDevice() {
+        isBusy = true
+        Task {
+            do {
+                try await apiService.bootstrapAccount()
+                isBusy = false
+                alertMessage = "Connected. Your ID is " + (apiService.currentUserId ?? "")
+                showingAlert = true
+                await recipientsManager.loadTrustCircle()
+            } catch {
+                isBusy = false
+                alertMessage = "Connection failed: " + error.localizedDescription
+                showingAlert = true
+            }
+        }
+    }
 
-
-
-
-
+    private func generatePairingCode() {
+        isBusy = true
+        Task {
+            do {
+                let code = try await recipientsManager.requestPairingCode()
+                pairCode = code
+                isBusy = false
+            } catch {
+                isBusy = false
+                alertMessage = "Could not create pairing code: " + error.localizedDescription
+                showingAlert = true
+            }
+        }
+    }
 }
+
+struct ClaimCodeSheet: View {
+    @EnvironmentObject private var settings: AccessibilitySettings
+    @Binding var isPresented: Bool
+    @Binding var code: String
+    let onClaim: (String) -> Void
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Image(systemName: "person.badge.plus")
+                    .font(.system(size: settings.textSize * 2))
+                    .foregroundColor(.blue)
+
+                Text("Add a Recipient")
+                    .font(.system(size: settings.textSize * 1.2, weight: .bold))
+
+                Text("Ask them to tap Show My Pairing Code, then enter the code here.")
+                    .font(.system(size: settings.textSize * 0.5))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                TextField("Pairing Code", text: $code)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .font(.system(size: settings.textSize * 0.9, weight: .bold, design: .monospaced))
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+
+                Button("Pair Recipient") {
+                    let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+                    guard !trimmed.isEmpty else { return }
+                    onClaim(trimmed)
+                    isPresented = false
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .font(.system(size: settings.textSize * 0.7, weight: .semibold))
+            }
+            .padding()
+            .navigationTitle("Pair Recipient")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { isPresented = false }
+                        .font(.system(size: settings.textSize * 0.6))
+                }
+            }
+        }
+    }
 }

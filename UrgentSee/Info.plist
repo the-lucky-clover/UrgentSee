@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>API_BASE_URL</key>
+	<string>https://urgentsee-edge.pounds1.workers.dev</string>
 	<key>CFBundleDisplayName</key>
 	<string>UrgentSee</string>
 	<key>CFBundleExecutable</key>

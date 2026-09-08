@@ -54,17 +54,20 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload | nu
 function base64UrlDecode(str: string): ArrayBuffer {
   // Replace URL-safe chars
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  
+
   // Pad with '=' to make length a multiple of 4
   const pad = base64.length % 4;
   if (pad) {
     base64 += '='.repeat(4 - pad);
   }
-  
-  // Decode using Buffer (Cloudflare Workers has Buffer global)
-  const binary = Buffer.from(base64, 'base64');
-  // Return ArrayBuffer to satisfy BufferSource type requirement
-  return binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength);
+
+  // Decode using atob (available in the Workers runtime)
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
 }
 
 async function authenticateRequest(request: Request, env: Env): Promise<{ userId: string } | Response> {
@@ -89,6 +92,131 @@ async function authenticateRequest(request: Request, env: Env): Promise<{ userId
   return { userId: payload.sub };
 }
 
+// MARK: - JWT signing (server-issued tokens)
+
+function base64UrlEncode(data: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < data.byteLength; i++) binary += String.fromCharCode(data[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function createJWT(sub: string, secret: string, ttlSeconds: number): Promise<string> {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const now = Math.floor(Date.now() / 1000);
+  const payload = { sub, iat: now, exp: now + ttlSeconds };
+
+  const headerB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
+  const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(payload)));
+  const signingInput = `${headerB64}.${payloadB64}`;
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(signingInput) as unknown as BufferSource
+  );
+
+  return `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
+}
+
+// MARK: - Device bootstrap (issues real server-signed JWT)
+
+
+
+async function handleDeviceRegister(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json()) as { deviceId: string; publicKey: string; displayName?: string };
+  if (!body.deviceId || !body.publicKey) {
+    return new Response(JSON.stringify({ error: 'MISSING_REQUIRED_FIELDS' }), { status: 400 });
+  }
+
+  // Stable user id derived from the device id so reinstalls keep identity when keys persist.
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.deviceId));
+  const userId = `usr_${base64UrlEncode(new Uint8Array(digest)).slice(0, 12).toLowerCase()}`;
+
+  await env.READRUSH_DB.prepare(
+    `INSERT INTO us_users (user_id, public_key, apns_token, updated_at)
+     VALUES (?, ?, NULL, CURRENT_TIMESTAMP)
+     ON CONFLICT(user_id) DO UPDATE SET public_key = ?, updated_at = CURRENT_TIMESTAMP`
+  ).bind(userId, body.publicKey, body.publicKey).run();
+
+  const token = await createJWT(userId, env.JWT_SECRET, 60 * 60 * 24 * 365); // 1 year dev token
+
+  return new Response(JSON.stringify({ userId, token, displayName: body.displayName ?? null }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+// MARK: - Pairing (master pairs a recipient via a short code)
+
+async function handlePairingCode(request: Request, env: Env): Promise<Response> {
+  const authResult = await authenticateRequest(request, env);
+  if (authResult instanceof Response) return authResult;
+  const userId = authResult.userId;
+
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  const rand = new Uint8Array(6);
+  crypto.getRandomValues(rand);
+  for (let i = 0; i < 6; i++) code += alphabet[rand[i] % alphabet.length];
+
+  const ttlSeconds = 15 * 60;
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
+  await env.DEVICE_TOKENS_KV.put(`pairing:${code}`, userId, { expirationTtl: ttlSeconds });
+
+  return new Response(JSON.stringify({ code, expiresAt }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+async function handlePairingClaim(request: Request, env: Env): Promise<Response> {
+  const authResult = await authenticateRequest(request, env);
+  if (authResult instanceof Response) return authResult;
+  const claimantId = authResult.userId;
+
+  const body = (await request.json()) as { code: string };
+  if (!body.code) {
+    return new Response(JSON.stringify({ error: 'MISSING_CODE' }), { status: 400 });
+  }
+
+  const code = body.code.trim().toUpperCase();
+  const targetUserId = await env.DEVICE_TOKENS_KV.get(`pairing:${code}`);
+  if (!targetUserId) {
+    return new Response(JSON.stringify({ error: 'INVALID_OR_EXPIRED_CODE' }), { status: 404 });
+  }
+  if (targetUserId === claimantId) {
+    return new Response(JSON.stringify({ error: 'CANNOT_PAIR_WITH_SELF' }), { status: 400 });
+  }
+
+  // Create ACTIVE link both directions so both sides see each other as recipients.
+  await env.READRUSH_DB.prepare(
+    `INSERT INTO us_trust_circles (user_id, pal_id, status, has_app_installed, last_seen_at, created_at)
+     VALUES (?, ?, 'ACTIVE', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+     ON CONFLICT(user_id, pal_id) DO UPDATE SET status = 'ACTIVE'`
+  ).bind(claimantId, targetUserId).run();
+
+  await env.READRUSH_DB.prepare(
+    `INSERT INTO us_trust_circles (user_id, pal_id, status, has_app_installed, last_seen_at, created_at)
+     VALUES (?, ?, 'ACTIVE', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+     ON CONFLICT(user_id, pal_id) DO UPDATE SET status = 'ACTIVE'`
+  ).bind(targetUserId, claimantId).run();
+
+  await env.DEVICE_TOKENS_KV.delete(`pairing:${code}`);
+
+  return new Response(JSON.stringify({ success: true, pairedWith: targetUserId }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -104,6 +232,15 @@ export default {
     }
 
     try {
+      if (url.pathname === '/v1/device/register' && request.method === 'POST') {
+        return await handleDeviceRegister(request, env);
+      }
+      if (url.pathname === '/v1/pairing/code' && request.method === 'POST') {
+        return await handlePairingCode(request, env);
+      }
+      if (url.pathname === '/v1/pairing/claim' && request.method === 'POST') {
+        return await handlePairingClaim(request, env);
+      }
       if (url.pathname === '/v1/user/token' && request.method === 'POST') {
         return await handleTokenSync(request, env);
       }
@@ -166,7 +303,7 @@ async function handleTokenSync(request: Request, env: Env): Promise<Response> {
   await env.DEVICE_TOKENS_KV.put(`apns_token:${body.userId}`, body.apnsToken);
 
   await env.READRUSH_DB.prepare(
-    `INSERT INTO users (user_id, public_key, apns_token, updated_at)
+    `INSERT INTO us_users (user_id, public_key, apns_token, updated_at)
      VALUES (?, 'DEFAULT_KEY', ?, CURRENT_TIMESTAMP)
      ON CONFLICT(user_id) DO UPDATE SET apns_token = ?, updated_at = CURRENT_TIMESTAMP`
   )
@@ -200,7 +337,7 @@ async function handlePublicKeyUpdate(request: Request, env: Env): Promise<Respon
   }
 
   await env.READRUSH_DB.prepare(
-    `UPDATE users SET public_key = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`
+    `UPDATE us_users SET public_key = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`
   )
     .bind(body.publicKey, authenticatedUserId)
     .run();
@@ -223,7 +360,7 @@ async function handlePublicKeyFetch(request: Request, env: Env): Promise<Respons
   }
 
   const user = await env.READRUSH_DB.prepare(
-    `SELECT public_key FROM users WHERE user_id = ?`
+    `SELECT public_key FROM us_users WHERE user_id = ?`
   )
     .bind(userId)
     .first<{ public_key: string }>();
@@ -256,15 +393,15 @@ async function handleTrustCircleList(request: Request, env: Env): Promise<Respon
   // Get all trust circle relationships for the user (both as user_id and pal_id)
   const sentInvites = await env.READRUSH_DB.prepare(
     `SELECT tc.pal_id, tc.status, tc.created_at, u.public_key as pal_public_key
-     FROM trust_circles tc
-     LEFT JOIN users u ON u.user_id = tc.pal_id
+     FROM us_trust_circles tc
+     LEFT JOIN us_users u ON u.user_id = tc.pal_id
      WHERE tc.user_id = ?`
   ).bind(authenticatedUserId).all<TrustCircleMember>();
 
   const receivedInvites = await env.READRUSH_DB.prepare(
     `SELECT tc.user_id as pal_id, tc.status, tc.created_at, u.public_key as pal_public_key
-     FROM trust_circles tc
-     LEFT JOIN users u ON u.user_id = tc.user_id
+     FROM us_trust_circles tc
+     LEFT JOIN us_users u ON u.user_id = tc.user_id
      WHERE tc.pal_id = ?`
   ).bind(authenticatedUserId).all<TrustCircleMember>();
 
@@ -311,7 +448,7 @@ async function handleTrustCircleInvite(request: Request, env: Env): Promise<Resp
 
   // Check if user exists
   const targetUser = await env.READRUSH_DB.prepare(
-    `SELECT user_id FROM users WHERE user_id = ?`
+    `SELECT user_id FROM us_users WHERE user_id = ?`
   ).bind(body.palId).first();
 
   if (!targetUser) {
@@ -320,7 +457,7 @@ async function handleTrustCircleInvite(request: Request, env: Env): Promise<Resp
 
   // Check if relationship already exists
   const existing = await env.READRUSH_DB.prepare(
-    `SELECT status FROM trust_circles WHERE user_id = ? AND pal_id = ?`
+    `SELECT status FROM us_trust_circles WHERE user_id = ? AND pal_id = ?`
   ).bind(authenticatedUserId, body.palId).first();
 
   if (existing) {
@@ -329,7 +466,7 @@ async function handleTrustCircleInvite(request: Request, env: Env): Promise<Resp
 
 // Create pending invite
   await env.READRUSH_DB.prepare(
-    `INSERT INTO trust_circles (user_id, pal_id, status) VALUES (?, ?, 'PENDING')`
+    `INSERT INTO us_trust_circles (user_id, pal_id, status) VALUES (?, ?, 'PENDING')`
   ).bind(authenticatedUserId, body.palId).run();
 
   // TODO: Send push notification to palId about the invite
@@ -362,7 +499,7 @@ async function handleTrustCircleAccept(request: Request, env: Env): Promise<Resp
 
   // Find the pending invite from palId to authenticatedUserId
   const invite = await env.READRUSH_DB.prepare(
-    `SELECT * FROM trust_circles WHERE user_id = ? AND pal_id = ? AND status = 'PENDING'`
+    `SELECT * FROM us_trust_circles WHERE user_id = ? AND pal_id = ? AND status = 'PENDING'`
   ).bind(body.palId, authenticatedUserId).first();
 
   if (!invite) {
@@ -371,12 +508,12 @@ async function handleTrustCircleAccept(request: Request, env: Env): Promise<Resp
 
   // Update to ACTIVE (bidirectional - update both directions or insert reverse)
   await env.READRUSH_DB.prepare(
-    `UPDATE trust_circles SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND pal_id = ?`
+    `UPDATE us_trust_circles SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND pal_id = ?`
   ).bind(body.palId, authenticatedUserId).run();
 
 // Also create reverse relationship
   await env.READRUSH_DB.prepare(
-    `INSERT INTO trust_circles (user_id, pal_id, status) VALUES (?, ?, 'ACTIVE')
+    `INSERT INTO us_trust_circles (user_id, pal_id, status) VALUES (?, ?, 'ACTIVE')
      ON CONFLICT(user_id, pal_id) DO UPDATE SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP`
   ).bind(authenticatedUserId, body.palId).run();
 
@@ -410,12 +547,12 @@ async function handleTrustCircleBlock(request: Request, env: Env): Promise<Respo
 
 // Block in both directions
   await env.READRUSH_DB.prepare(
-    `INSERT INTO trust_circles (user_id, pal_id, status) VALUES (?, ?, 'BLOCKED')
+    `INSERT INTO us_trust_circles (user_id, pal_id, status) VALUES (?, ?, 'BLOCKED')
      ON CONFLICT(user_id, pal_id) DO UPDATE SET status = 'BLOCKED', updated_at = CURRENT_TIMESTAMP`
   ).bind(authenticatedUserId, body.palId).run();
 
   await env.READRUSH_DB.prepare(
-    `INSERT INTO trust_circles (user_id, pal_id, status) VALUES (?, ?, 'BLOCKED')
+    `INSERT INTO us_trust_circles (user_id, pal_id, status) VALUES (?, ?, 'BLOCKED')
      ON CONFLICT(user_id, pal_id) DO UPDATE SET status = 'BLOCKED', updated_at = CURRENT_TIMESTAMP`
   ).bind(body.palId, authenticatedUserId).run();
 
@@ -447,11 +584,11 @@ async function handleTrustCircleRemove(request: Request, env: Env): Promise<Resp
 
   // Remove in both directions
   await env.READRUSH_DB.prepare(
-    `DELETE FROM trust_circles WHERE user_id = ? AND pal_id = ?`
+    `DELETE FROM us_trust_circles WHERE user_id = ? AND pal_id = ?`
   ).bind(authenticatedUserId, body.palId).run();
 
   await env.READRUSH_DB.prepare(
-    `DELETE FROM trust_circles WHERE user_id = ? AND pal_id = ?`
+    `DELETE FROM us_trust_circles WHERE user_id = ? AND pal_id = ?`
   ).bind(body.palId, authenticatedUserId).run();
 
   // Log telemetry for trust circle removal
@@ -494,7 +631,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
   }
 
   const trustCheck = await env.READRUSH_DB.prepare(
-    `SELECT status FROM trust_circles WHERE user_id = ? AND pal_id = ? AND status = 'ACTIVE'`
+    `SELECT status FROM us_trust_circles WHERE user_id = ? AND pal_id = ? AND status = 'ACTIVE'`
   )
     .bind(senderId, recipientId)
     .first();
@@ -529,7 +666,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
   const previewText = isCritical ? "🔒 Encrypted Critical Alert" : "🔒 Encrypted Message";
 
   await env.READRUSH_DB.prepare(
-    `INSERT INTO rush_alerts (alert_id, sender_id, recipient_id, payload_ciphertext, raw_message_preview, is_critical, ttl_minutes, until_received, status, expires_at)
+    `INSERT INTO us_rush_alerts (alert_id, sender_id, recipient_id, payload_ciphertext, raw_message_preview, is_critical, ttl_minutes, until_received, status, expires_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PUSHED', ?)`
   )
     .bind(alertId, senderId, recipientId, messageText, previewText, isCritical ? 1 : 0, ttlMinutes, untilReceived ? 1 : 0, expiresAt)
@@ -586,9 +723,9 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
     // Check for unregistered device token (user uninstalled app)
     if (apnsResponse.status === 410 || (apnsResponse.status === 400 && errorText.includes('Unregistered'))) {
       console.log('[UrgentSee] APNs token unregistered for recipient:', recipientId);
-      // Mark app as uninstalled for all users who have this recipient in their trust circle
+      // Mark app as uninstalled for all us_users who have this recipient in their trust circle
       await env.READRUSH_DB.prepare(
-        `UPDATE trust_circles SET has_app_installed = 0 WHERE pal_id = ?`
+        `UPDATE us_trust_circles SET has_app_installed = 0 WHERE pal_id = ?`
       ).bind(recipientId).run();
       
       // Also remove the invalid APNs token
@@ -597,7 +734,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
     
     // Update alert status to reflect push failure
     await env.READRUSH_DB.prepare(
-      `UPDATE rush_alerts SET status = 'EXPIRED' WHERE alert_id = ?`
+      `UPDATE us_rush_alerts SET status = 'EXPIRED' WHERE alert_id = ?`
     ).bind(alertId).run();
     
     // Log telemetry for push failure
@@ -652,7 +789,7 @@ async function handleReverseAck(request: Request, env: Env): Promise<Response> {
   }
 
   const alertRecord = await env.READRUSH_DB.prepare(
-    `UPDATE rush_alerts
+    `UPDATE us_rush_alerts
      SET status = 'SEEN', acknowledged_at = CURRENT_TIMESTAMP
      WHERE alert_id = ? AND recipient_id = ?
      RETURNING sender_id, raw_message_preview`
@@ -769,7 +906,7 @@ async function handleHeartbeat(request: Request, env: Env): Promise<Response> {
 
   // Update last_seen_at for all trust circle relationships where this user is the pal
   await env.READRUSH_DB.prepare(
-    `UPDATE trust_circles SET last_seen_at = ?, has_app_installed = 1 WHERE pal_id = ?`
+    `UPDATE us_trust_circles SET last_seen_at = ?, has_app_installed = 1 WHERE pal_id = ?`
   )
     .bind(now, authenticatedUserId)
     .run();
@@ -795,9 +932,9 @@ async function scheduleUntilReceivedRetry(
   const maxRetries = Math.floor((ttlMinutes * 60 * 1000) / retryInterval);
   
   // Store retry schedule in a separate table or use a durable object
-  // For now, we'll store it in the rush_alerts table with a retry_count
+  // For now, we'll store it in the us_rush_alerts table with a retry_count
   await env.READRUSH_DB.prepare(
-    `UPDATE rush_alerts SET retry_count = 0, max_retries = ? WHERE alert_id = ?`
+    `UPDATE us_rush_alerts SET retry_count = 0, max_retries = ? WHERE alert_id = ?`
   ).bind(maxRetries, alertId).run();
   
   console.log(`[UrgentSee] Scheduled ${maxRetries} retries for alert ${alertId} (untilReceived=true)`);
@@ -814,7 +951,7 @@ async function logTelemetryEvent(
   try {
     const eventId = crypto.randomUUID();
     await env.READRUSH_DB.prepare(
-      `INSERT INTO telemetry_events (event_id, user_id, event_type, latency_ms, delivery_status, created_at)
+      `INSERT INTO us_telemetry_events (event_id, user_id, event_type, latency_ms, delivery_status, created_at)
        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`
     )
       .bind(eventId, userId, eventType, statusCode, details)

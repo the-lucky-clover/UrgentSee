@@ -6,6 +6,7 @@ struct RecipientsView: View {
     @StateObject private var apiService = APIService.shared
     
     @State private var showInviteSheet = false
+    @State private var showSettings = false
     @State private var inviteUserId = ""
     @State private var showError = false
     @State private var errorMessage = ""
@@ -42,6 +43,12 @@ struct RecipientsView: View {
                                     .foregroundColor(.gray)
                             }
                             Spacer()
+                            Button(action: { showSettings = true }) {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.system(size: settings.textSize * 0.7))
+                                    .foregroundColor(.gray)
+                            }
+                            .accessibilityLabel("Settings")
                         }
                         .padding(.horizontal, 4)
                         .opacity(animatedIn[0] ? 1 : 0)
@@ -52,7 +59,7 @@ struct RecipientsView: View {
                             HStack(spacing: 10) {
                                 Image(systemName: "person.badge.plus.fill")
                                     .font(.system(size: settings.textSize * 0.7, weight: .bold))
-                                Text("ADD TRUSTED Recipient")
+                                 Text("ADD RECIPIENT")
                                     .font(.system(size: settings.textSize * 0.6, weight: .black, design: .monospaced))
                             }
                             .frame(maxWidth: .infinity)
@@ -68,9 +75,31 @@ struct RecipientsView: View {
                             .cornerRadius(16)
                             .shadow(color: Color.blue.opacity(0.5), radius: 15, x: 0, y: 6)
                         }
-                        .opacity(animatedIn[1] ? 1 : 0)
+                        .disabled(!apiService.isAuthenticated)
+                        .opacity((animatedIn[1] ? 1 : 0) * (apiService.isAuthenticated ? 1 : 0.45))
                         .scaleEffect(animatedIn[1] ? 1 : 0.9)
                         .offset(y: animatedIn[1] ? 0 : 30)
+                        
+                        if !apiService.isAuthenticated {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("ACCOUNT")
+                                    .font(.system(size: settings.textSize * 0.35, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.orange)
+                                Text("Connect your account in Settings (gear) to add recipients and send alerts.")
+                                    .font(.system(size: settings.textSize * 0.45))
+                                    .foregroundColor(.gray)
+                                Button(action: { showSettings = true }) {
+                                    Text("OPEN SETTINGS")
+                                        .font(.system(size: settings.textSize * 0.5, weight: .black, design: .monospaced))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(Color.orange.opacity(0.25))
+                                        .foregroundColor(.orange)
+                                        .cornerRadius(10)
+                                }
+                            }
+                            .glassmorphicBento(glowColor: .orange)
+                        }
                         
                         // Active Members
                         if !trustCircleManager.activeMembers.isEmpty {
@@ -165,6 +194,10 @@ struct RecipientsView: View {
                 Task {
                     await trustCircleManager.loadTrustCircle()
                 }
+            }
+            .sheet(isPresented: $showSettings) {
+                AuthSettingsView()
+                    .environmentObject(settings)
             }
             .sheet(isPresented: $showInviteSheet) {
                 InviteSheetView(onInvite: { userId in
