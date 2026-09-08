@@ -20,11 +20,16 @@ final class TrustCircleManager: ObservableObject {
         let publicKey: String?
         let hasAppInstalled: Bool
         let lastSeenAt: String?
+        /// "sent" = this device invited them; "received" = they invited this device.
+        let direction: String
         
         var displayName: String {
             // In production, fetch from contacts or user profile
             return userId
         }
+        
+        var isIncoming: Bool { direction == "received" }
+        var isOutgoing: Bool { direction == "sent" }
         
         var statusColor: Color {
             switch status {
@@ -70,7 +75,7 @@ final class TrustCircleManager: ObservableObject {
             return nil
         }
         
-        enum CodingKeys: String, CodingKey { case id, userId, status, createdAt, publicKey, hasAppInstalled, lastSeenAt }
+        enum CodingKeys: String, CodingKey { case id, userId, status, createdAt, publicKey, hasAppInstalled, lastSeenAt, direction }
         
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -81,6 +86,7 @@ final class TrustCircleManager: ObservableObject {
             self.publicKey = try container.decodeIfPresent(String.self, forKey: .publicKey)
             self.hasAppInstalled = try container.decodeIfPresent(Bool.self, forKey: .hasAppInstalled) ?? true
             self.lastSeenAt = try container.decodeIfPresent(String.self, forKey: .lastSeenAt)
+            self.direction = try container.decodeIfPresent(String.self, forKey: .direction) ?? "received"
         }
         
         func encode(to encoder: Encoder) throws {
@@ -92,6 +98,7 @@ final class TrustCircleManager: ObservableObject {
             try container.encodeIfPresent(publicKey, forKey: .publicKey)
             try container.encode(hasAppInstalled, forKey: .hasAppInstalled)
             try container.encodeIfPresent(lastSeenAt, forKey: .lastSeenAt)
+            try container.encode(direction, forKey: .direction)
         }
     }
     

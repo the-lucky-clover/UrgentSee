@@ -133,11 +133,11 @@ struct RecipientsView: View {
                             .offset(y: animatedIn[2] ? 0 : 40)
                         }
                         
-                        // Pending Invites (Received)
-                        let receivedPending = trustCircleManager.members.filter { $0.isPending }
+                        // Pending Invites (Received - shows Accept/Decline)
+                        let receivedPending = trustCircleManager.members.filter { $0.isPending && $0.isIncoming }
                         if !receivedPending.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("PENDING INVITES (\(receivedPending.count))")
+                                Text("INVITES FOR YOU (\(receivedPending.count))")
                                     .font(.system(size: settings.textSize * 0.35, weight: .bold, design: .monospaced))
                                     .foregroundColor(.orange)
                                 
@@ -151,6 +151,44 @@ struct RecipientsView: View {
                                 }
                             }
                             .glassmorphicBento(glowColor: .orange)
+                            .opacity(animatedIn[3] ? 1 : 0)
+                            .scaleEffect(animatedIn[3] ? 1 : 0.9)
+                            .offset(y: animatedIn[3] ? 0 : 50)
+                        }
+                        
+                        // Outgoing Invites (Sent - waiting for the other device)
+                        let sentPending = trustCircleManager.members.filter { $0.isPending && $0.isOutgoing }
+                        if !sentPending.isEmpty {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("WAITING FOR RECIPIENT (\(sentPending.count))")
+                                    .font(.system(size: settings.textSize * 0.35, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.blue)
+                                
+                                ForEach(sentPending) { member in
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "hourglass")
+                                            .foregroundColor(.blue)
+                                            .font(.system(size: settings.textSize * 0.6))
+                                        Text("\(member.displayName)")
+                                            .font(.system(size: settings.textSize * 0.6, weight: .semibold))
+                                            .foregroundColor(.white)
+                                        Spacer()
+                                        Text("Waiting for them to accept")
+                                            .font(.system(size: settings.textSize * 0.35))
+                                            .foregroundColor(.gray)
+                                            .multilineTextAlignment(.trailing)
+                                    }
+                                    .padding(.vertical, settings.textSize * 0.35)
+                                    .padding(.horizontal, settings.textSize * 0.5)
+                                    .background(Color.blue.opacity(0.08))
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    )
+                                }
+                            }
+                            .glassmorphicBento(glowColor: .blue)
                             .opacity(animatedIn[3] ? 1 : 0)
                             .scaleEffect(animatedIn[3] ? 1 : 0.9)
                             .offset(y: animatedIn[3] ? 0 : 50)

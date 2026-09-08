@@ -409,12 +409,12 @@ async function handleTrustCircleList(request: Request, env: Env): Promise<Respon
   const allMembers = new Map<string, TrustCircleMember>();
   
   for (const member of sentInvites.results || []) {
-    allMembers.set(member.pal_id, { ...member, pal_name: member.pal_id });
+    allMembers.set(member.pal_id, { ...member, pal_name: member.pal_id, direction: 'sent' });
   }
   for (const member of receivedInvites.results || []) {
     const existing = allMembers.get(member.pal_id);
     if (!existing || existing.status === 'PENDING' && member.status === 'ACTIVE') {
-      allMembers.set(member.pal_id, { ...member, pal_name: member.pal_id });
+      allMembers.set(member.pal_id, { ...member, pal_name: member.pal_id, direction: 'received' });
     }
   }
 
@@ -423,6 +423,7 @@ async function handleTrustCircleList(request: Request, env: Env): Promise<Respon
     status: m.status,
     createdAt: m.created_at,
     publicKey: m.pal_public_key,
+    direction: m.direction ?? 'received',
   }));
 
   return new Response(JSON.stringify({ members }), {
