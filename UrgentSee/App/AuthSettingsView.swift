@@ -214,6 +214,7 @@ struct TrustCircleListView: View {
             }
             .sheet(item: $pendingNameRecipient) { pending in
                 NameRecipientSheet(userId: pending.id, onSave: { name in
+                    Haptics.success()
                     trustManager.setDisplayName(name, for: pending.id)
                 })
                 .environmentObject(settings)
@@ -384,6 +385,7 @@ struct AuthSettingsView: View {
                             .font(.system(size: settings.textSize * 0.5, design: .monospaced))
                             .foregroundColor(.secondary)
                         Button("Send Test Notification") {
+                            Haptics.tap()
                             testFeedback = "scheduling…"
                             pushManager.scheduleTestNotification { error in
                                 testFeedback = error.map { "Error: \($0)" } ?? "Scheduled ✓ — check for the banner"
@@ -482,10 +484,12 @@ struct AuthSettingsView: View {
                         Task {
                             do {
                                 _ = try await recipientsManager.claimPairingCode(code)
+                                Haptics.success()
                                 claimCode = ""
                                 alertMessage = "Paired! Recipient added."
                                 showingAlert = true
                             } catch {
+                                Haptics.error()
                                 alertMessage = error.localizedDescription
                                 showingAlert = true
                             }
@@ -505,11 +509,13 @@ struct AuthSettingsView: View {
         Task {
             do {
                 try await apiService.bootstrapAccount()
+                Haptics.success()
                 isBusy = false
                 alertMessage = "Connected. Your ID is " + (apiService.currentUserId ?? "")
                 showingAlert = true
                 await recipientsManager.loadTrustCircle()
             } catch {
+                Haptics.error()
                 isBusy = false
                 alertMessage = "Connection failed: " + error.localizedDescription
                 showingAlert = true
@@ -518,13 +524,16 @@ struct AuthSettingsView: View {
     }
 
     private func generatePairingCode() {
+        Haptics.tap()
         isBusy = true
         Task {
             do {
                 let code = try await recipientsManager.requestPairingCode()
+                Haptics.success()
                 pairCode = code
                 isBusy = false
             } catch {
+                Haptics.error()
                 isBusy = false
                 alertMessage = "Could not create pairing code: " + error.localizedDescription
                 showingAlert = true

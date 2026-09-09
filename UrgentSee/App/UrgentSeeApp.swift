@@ -187,6 +187,7 @@ struct OnboardingView: View {
             Spacer()
 
             Button(action: {
+                Haptics.success()
                 onDone()
                 dismiss()
             }) {

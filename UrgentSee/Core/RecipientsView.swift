@@ -314,9 +314,11 @@ struct RecipientsView: View {
                         Task {
                             do {
                                 let pairedId = try await trustCircleManager.claimPairingCode(code)
+                                Haptics.success()
                                 inviteUserId = ""
                                 pendingNameRecipient = RecipientToName(id: pairedId)
                             } catch {
+                                Haptics.error()
                                 errorMessage = error.localizedDescription
                                 showError = true
                             }
@@ -327,6 +329,7 @@ struct RecipientsView: View {
             }
             .sheet(item: $pendingNameRecipient) { pending in
                 NameRecipientSheet(userId: pending.id, onSave: { name in
+                    Haptics.success()
                     trustCircleManager.setDisplayName(name, for: pending.id)
                 })
                 .environmentObject(settings)
@@ -344,9 +347,11 @@ struct RecipientsView: View {
         Task {
             do {
                 try await apiService.bootstrapAccount()
+                Haptics.success()
                 isBusy = false
                 await trustCircleManager.loadTrustCircle()
             } catch {
+                Haptics.error()
                 isBusy = false
                 errorMessage = "Could not connect: " + error.localizedDescription
                 showError = true
@@ -355,13 +360,16 @@ struct RecipientsView: View {
     }
 
     private func generatePairCode() {
+        Haptics.tap()
         isBusy = true
         Task {
             do {
                 let code = try await trustCircleManager.requestPairingCode()
+                Haptics.success()
                 pairCode = code
                 isBusy = false
             } catch {
+                Haptics.error()
                 isBusy = false
                 errorMessage = error.localizedDescription
                 showError = true
@@ -380,6 +388,7 @@ struct RecipientsView: View {
     }
     
     private func blockMember(_ member: TrustCircleManager.TrustCircleMember) {
+        Haptics.medium()
         Task {
             do {
                 try await trustCircleManager.blockUser(palId: member.userId)
@@ -391,6 +400,7 @@ struct RecipientsView: View {
     }
     
     private func removeMember(_ member: TrustCircleManager.TrustCircleMember) {
+        Haptics.medium()
         Task {
             do {
                 try await trustCircleManager.removeUser(palId: member.userId)
@@ -402,6 +412,7 @@ struct RecipientsView: View {
     }
     
     private func acceptInvite(_ member: TrustCircleManager.TrustCircleMember) {
+        Haptics.medium()
         Task {
             do {
                 try await trustCircleManager.acceptInvite(from: member.userId)
@@ -413,6 +424,7 @@ struct RecipientsView: View {
     }
     
     private func declineInvite(_ member: TrustCircleManager.TrustCircleMember) {
+        Haptics.warning()
         // Declining is same as removing the pending invite
         Task {
             do {

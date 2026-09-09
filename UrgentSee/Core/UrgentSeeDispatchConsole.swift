@@ -599,11 +599,13 @@ struct UrgentSeeDispatchConsole: View {
     }
 
     private func onRecipientSelected(_ contact: TrustCircleManager.TrustCircleMember) {
+        Haptics.selection()
         selectedContact = contact
         loadMessageForRecipient(contact)
     }
 
     private func applyTemplate(_ template: MessageTemplate) {
+        Haptics.tap()
         let tText = template.text
         messageText = tText
         guard let contact = selectedContact else { return }
@@ -648,6 +650,7 @@ struct UrgentSeeDispatchConsole: View {
 
         dismissKeyboard()
 
+        Haptics.medium()
         isDispatching = true
         dispatchStage = .validating
         dispatchProgress = 0.0
@@ -700,6 +703,7 @@ struct UrgentSeeDispatchConsole: View {
                     saveRecipientMessage(messageText, for: contact.userId)
                     messageText = ""
                     unsendActive = true
+                    Haptics.success()
                     showDeliveryToast(confirmations)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
                         unsendActive = false
@@ -770,8 +774,7 @@ struct UrgentSeeDispatchConsole: View {
         dispatchToastColor = .green
         showDispatchToast = true
 
-        let impact = UIImpactFeedbackGenerator(style: .heavy)
-        impact.impactOccurred()
+        Haptics.success()
         AudioServicesPlaySystemSound(1016)
     }
 
@@ -781,8 +784,7 @@ struct UrgentSeeDispatchConsole: View {
         dispatchToastColor = .red
         showDispatchToast = true
 
-        let impact = UIImpactFeedbackGenerator(style: .heavy)
-        impact.impactOccurred()
+        Haptics.error()
         AudioServicesPlaySystemSound(1006)
     }
 
@@ -791,6 +793,7 @@ struct UrgentSeeDispatchConsole: View {
         do {
             try await apiService.unsendAlert(alertId: lastAlertId)
             await MainActor.run {
+                Haptics.warning()
                 unsendActive = false
                 dispatchToastMessage = "🕑 Message unsent"
                 dispatchToastIcon = "arrow.uturn.backward.circle.fill"
