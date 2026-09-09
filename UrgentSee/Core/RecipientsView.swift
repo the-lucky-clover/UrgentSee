@@ -1,18 +1,22 @@
 import SwiftUI
 
+struct RecipientToName: Identifiable {
+    let id: String
+}
+
 struct RecipientsView: View {
     @EnvironmentObject private var settings: AccessibilitySettings
     @StateObject private var trustCircleManager = TrustCircleManager.shared
     @StateObject private var apiService = APIService.shared
     
     @State private var showInviteSheet = false
-    @State private var showSettings = false
     @State private var inviteUserId = ""
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var animatedIn: [Bool] = Array(repeating: false, count: 4)
     @State private var pairCode = ""
     @State private var isBusy = false
+    @State private var pendingNameRecipient: RecipientToName?
     
     var body: some View {
         NavigationView {
@@ -45,12 +49,6 @@ struct RecipientsView: View {
                                     .foregroundColor(.gray)
                             }
                             Spacer()
-                            Button(action: { showSettings = true }) {
-                                Image(systemName: "gearshape.fill")
-                                    .font(.system(size: settings.textSize * 0.7))
-                                    .foregroundColor(.gray)
-                            }
-                            .accessibilityLabel("Settings")
                         }
                         .padding(.horizontal, 4)
                         .opacity(animatedIn[0] ? 1 : 0)
@@ -193,8 +191,10 @@ struct RecipientsView: View {
                                 ForEach(trustCircleManager.activeMembers) { member in
                                     TrustCircleMemberRow(
                                         member: member,
+                                        displayName: trustCircleManager.displayName(for: member.userId),
                                         onBlock: { blockMember(member) },
                                         onRemove: { removeMember(member) },
+                                        onRename: { pendingNameRecipient = RecipientToName(id: member.userId) },
                                         textSize: settings.textSize
                                     )
                                 }
@@ -216,6 +216,7 @@ struct RecipientsView: View {
                                 ForEach(receivedPending) { member in
                                     PendingInviteRow(
                                         member: member,
+                                        displayName: trustCircleManager.displayName(for: member.userId),
                                         onAccept: { acceptInvite(member) },
                                         onDecline: { declineInvite(member) },
                                         textSize: settings.textSize
@@ -241,7 +242,7 @@ struct RecipientsView: View {
                                         Image(systemName: "hourglass")
                                             .foregroundColor(.blue)
                                             .font(.system(size: settings.textSize * 0.6))
-                                        Text("\(member.displayName)")
+                                        Text(trustCircleManager.displayName(for: member.userId))
                                             .font(.system(size: settings.textSize * 0.6, weight: .semibold))
                                             .foregroundColor(.white)
                                         Spacer()
@@ -305,10 +306,6 @@ struct RecipientsView: View {
                     await trustCircleManager.loadTrustCircle()
                 }
             }
-            .sheet(isPresented: $showSettings) {
-                AuthSettingsView()
-                    .environmentObject(settings)
-            }
             .sheet(isPresented: $showInviteSheet) {
                 ClaimCodeSheet(
                     isPresented: $showInviteSheet,
@@ -316,8 +313,9 @@ struct RecipientsView: View {
                     onClaim: { code in
                         Task {
                             do {
-                                _ = try await trustCircleManager.claimPairingCode(code)
+                                let pairedId = try await trustCircleManager.claimPairingCode(code)
                                 inviteUserId = ""
+                                pendingNameRecipient = RecipientToName(id: pairedId)
                             } catch {
                                 errorMessage = error.localizedDescription
                                 showError = true
@@ -325,6 +323,12 @@ struct RecipientsView: View {
                         }
                     }
                 )
+                .environmentObject(settings)
+            }
+            .sheet(item: $pendingNameRecipient) { pending in
+                NameRecipientSheet(userId: pending.id, onSave: { name in
+                    trustCircleManager.setDisplayName(name, for: pending.id)
+                })
                 .environmentObject(settings)
             }
             .alert("Error", isPresented: $showError) {
@@ -365,7 +369,8 @@ struct RecipientsView: View {
         }
     }
 
-    private func triggerEntranceAnimations() {        for index in 0..<animatedIn.count {
+    private func triggerEntranceAnimations() {
+        for index in 0..<animatedIn.count {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) {
                     animatedIn[index] = true
@@ -422,8 +427,10 @@ struct RecipientsView: View {
 
 struct TrustCircleMemberRow: View {
     let member: TrustCircleManager.TrustCircleMember
+    let displayName: String
     let onBlock: () -> Void
     let onRemove: () -> Void
+    let onRename: () -> Void
     let textSize: Double
     
     @State private var showActions = false
@@ -435,14 +442,14 @@ struct TrustCircleMemberRow: View {
                 .fill(member.statusColor.opacity(0.2))
                 .frame(width: textSize * 2, height: textSize * 2)
                 .overlay(
-                    Text(String(member.displayName.prefix(1)).uppercased())
+                    Text(String(displayName.prefix(1)).uppercased())
                         .font(.system(size: textSize * 0.8, weight: .bold, design: .monospaced))
                         .foregroundColor(member.statusColor)
                 )
             
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(member.displayName)
+                    Text(displayName)
                         .font(.system(size: textSize * 0.65, weight: .bold))
                         .foregroundColor(.white)
                     
@@ -483,6 +490,9 @@ struct TrustCircleMemberRow: View {
             Spacer()
             
             Menu {
+                Button(action: onRename) {
+                    Label("Rename", systemImage: "pencil")
+                }
                 Button(role: .destructive, action: onBlock) {
                     Label("Block", systemImage: "hand.raised.fill")
                 }
@@ -509,6 +519,7 @@ struct TrustCircleMemberRow: View {
 
 struct PendingInviteRow: View {
     let member: TrustCircleManager.TrustCircleMember
+    let displayName: String
     let onAccept: () -> Void
     let onDecline: () -> Void
     let textSize: Double
@@ -519,13 +530,13 @@ struct PendingInviteRow: View {
                 .fill(Color.orange.opacity(0.2))
                 .frame(width: textSize * 2, height: textSize * 2)
                 .overlay(
-                    Text(String(member.displayName.prefix(1)).uppercased())
+                    Text(String(displayName.prefix(1)).uppercased())
                         .font(.system(size: textSize * 0.8, weight: .bold, design: .monospaced))
                         .foregroundColor(.orange)
                 )
             
             VStack(alignment: .leading, spacing: 3) {
-                Text(member.displayName)
+                Text(displayName)
                     .font(.system(size: textSize * 0.65, weight: .bold))
                     .foregroundColor(.white)
                 
@@ -649,6 +660,68 @@ struct InviteSheetView: View {
                     Button("Cancel") { dismiss() }
                         .foregroundColor(.gray)
                         .font(.system(size: settings.textSize * 0.55))
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+struct NameRecipientSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var settings: AccessibilitySettings
+    let userId: String
+    let onSave: (String) -> Void
+
+    @State private var name = ""
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Image(systemName: "person.text.rectangle")
+                    .font(.system(size: settings.textSize * 2))
+                    .foregroundColor(.blue)
+
+                Text("Name this Recipient")
+                    .font(.system(size: settings.textSize * 1.1, weight: .bold))
+
+                Text("Give them a friendly name so they show up like 'Mom' or 'Jordan'. Leave empty to keep their ID.")
+                    .font(.system(size: settings.textSize * 0.5))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                TextField("Custom name", text: $name)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .font(.system(size: settings.textSize * 0.8))
+                    .padding(.horizontal)
+
+                Text("ID: \(userId)")
+                    .font(.system(size: settings.textSize * 0.45, design: .monospaced))
+                    .foregroundColor(.gray)
+
+                Button(action: {
+                    onSave(name)
+                    dismiss()
+                }) {
+                    Text("SAVE")
+                        .font(.system(size: settings.textSize * 0.6, weight: .black, design: .monospaced))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, settings.textSize * 0.6)
+                        .background(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                }
+                .padding(.horizontal, 20)
+
+                Spacer()
+            }
+            .padding(.top, 30)
+            .navigationTitle("Name Recipient")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .font(.system(size: settings.textSize * 0.6))
                 }
             }
         }

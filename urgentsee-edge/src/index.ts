@@ -313,6 +313,13 @@ export default {
       if (url.pathname === '/v1/pairing/claim' && request.method === 'POST') {
         return await handlePairingClaim(request, env);
       }
+      const alertDetailMatch = url.pathname.match(/^\/v1\/rush\/alerts\/([^/]+)$/);
+      if (alertDetailMatch && request.method === 'GET') {
+        return await handleGetAlert(request, env, alertDetailMatch[1]);
+      }
+      if (url.pathname === '/v1/rush/unsend' && request.method === 'POST') {
+        return await handleUnsend(request, env);
+      }
       if (url.pathname === '/v1/user/token' && request.method === 'POST') {
         return await handleTokenSync(request, env);
       }
@@ -693,7 +700,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
     isCritical: boolean;
   };
 
-  const { senderId, senderName, recipientId, messageText, ttlMinutes = 15, isCritical = true, untilReceived = false } = body;
+  const { senderId, senderName, recipientId, messageText, ttlMinutes = 15, isCritical = true, untilReceived = false, previewText } = body;
 
   if (senderId !== authenticatedUserId) {
     return new Response(JSON.stringify({ error: 'FORBIDDEN', message: 'senderId does not match authenticated user' }), { status: 403 });
@@ -735,14 +742,18 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
   const alertId = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
 
-  // Create a short preview for lock screen (first 50 chars of "Encrypted message")
-  const previewText = isCritical ? "🔒 Encrypted Critical Alert" : "🔒 Encrypted Message";
+  // Create a short preview for lock screen. The app can send a plaintext preview;
+  // otherwise fall back to a generic encrypted notice.
+  const previewTextValue = (previewText ?? '').trim();
+  const finalPreview = previewTextValue.length > 0
+    ? previewTextValue
+    : (isCritical ? "🔒 Critical Alert" : "🔒 Encrypted Message");
 
   await env.READRUSH_DB.prepare(
     `INSERT INTO us_rush_alerts (alert_id, sender_id, recipient_id, payload_ciphertext, raw_message_preview, is_critical, ttl_minutes, until_received, status, expires_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PUSHED', ?)`
   )
-    .bind(alertId, senderId, recipientId, messageText, previewText, isCritical ? 1 : 0, ttlMinutes, untilReceived ? 1 : 0, expiresAt)
+    .bind(alertId, senderId, recipientId, messageText, finalPreview, isCritical ? 1 : 0, ttlMinutes, untilReceived ? 1 : 0, expiresAt)
     .run();
 
   // If untilReceived is true, schedule a retry check
@@ -757,9 +768,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
     aps: {
       alert: {
         title: senderName || 'UrgentSee',
-        body: useCritical
-          ? 'URGENT message from ' + (senderName || 'a recipient')
-          : 'Message from ' + (senderName || 'a recipient'),
+        body: finalPreview,
       },
       sound: 'default',
       'thread-id': alertId,
@@ -933,7 +942,98 @@ async function handleReverseAck(request: Request, env: Env): Promise<Response> {
   );
 }
 
-// Admin override for rate limiting (emergency bypass)
+// Fetch alert details + decrypted payload ciphertext for the recipient (opening a notification)
+async function handleGetAlert(request: Request, env: Env, alertId: string): Promise<Response> {
+  const authResult = await authenticateRequest(request, env);
+  if (authResult instanceof Response) return authResult;
+  const authenticatedUserId = authResult.userId;
+
+  const row = await env.READRUSH_DB.prepare(
+    `SELECT alert_id, sender_id, payload_ciphertext, raw_message_preview, status, created_at
+     FROM us_rush_alerts
+     WHERE alert_id = ? AND recipient_id = ?`
+  ).bind(alertId, authenticatedUserId).first<any>();
+
+  if (!row) {
+    return new Response(JSON.stringify({ error: 'ALERT_NOT_FOUND' }), { status: 404 });
+  }
+
+  return new Response(JSON.stringify({
+    alertId: row.alert_id,
+    senderId: row.sender_id,
+    payloadCiphertext: row.payload_ciphertext,
+    preview: row.raw_message_preview,
+    status: row.status,
+    createdAt: row.created_at,
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+}
+
+// Recall/unsend an alert within a short window after sending.
+async function handleUnsend(request: Request, env: Env): Promise<Response> {
+  const authResult = await authenticateRequest(request, env);
+  if (authResult instanceof Response) return authResult;
+  const senderId = authResult.userId;
+
+  const body = (await request.json()) as { alertId: string };
+  if (!body.alertId) {
+    return new Response(JSON.stringify({ error: 'MISSING_ALERT_ID' }), { status: 400 });
+  }
+
+  const row = await env.READRUSH_DB.prepare(
+    `SELECT recipient_id, created_at, status FROM us_rush_alerts WHERE alert_id = ? AND sender_id = ?`
+  ).bind(body.alertId, senderId).first<any>();
+
+  if (!row) {
+    return new Response(JSON.stringify({ error: 'ALERT_NOT_FOUND' }), { status: 404 });
+  }
+  if (row.status !== 'PUSHED' && row.status !== 'MOUNTED') {
+    return new Response(JSON.stringify({ error: 'ALREADY_SEEN' }), { status: 400 });
+  }
+
+  const unsendWindowMs = 60 * 1000; // 60 second unsend window
+  const created = new Date(row.created_at.replace(' ', 'T') + 'Z').getTime();
+  if (Number.isFinite(created) && Date.now() - created > unsendWindowMs) {
+    return new Response(JSON.stringify({ error: 'UNSEND_WINDOW_EXPIRED' }), { status: 400 });
+  }
+
+  await env.READRUSH_DB.prepare(
+    `UPDATE us_rush_alerts SET status = 'EXPIRED', acknowledged_at = CURRENT_TIMESTAMP WHERE alert_id = ?`
+  ).bind(body.alertId).run();
+
+  // Best-effort recall push so the recipient knows it was unsent.
+  const recipientApnsToken = await env.DEVICE_TOKENS_KV.get(`apns_token:${row.recipient_id}`);
+  if (recipientApnsToken) {
+    const auth = await cachedAPNsAuthToken(env);
+    const host = env.APNS_ENV === 'production' ? 'api.push.apple.com' : 'api.development.push.apple.com';
+    const topic = env.APNS_TOPIC || 'com.urgentsee.UrgentSee';
+    const payload = {
+      aps: {
+        alert: { title: 'UrgentSee', body: 'A message was unsent.' },
+        sound: 'default',
+      },
+      alertId: body.alertId,
+      action: 'unsent',
+    };
+    await fetch(`https://${host}/3/device/${recipientApnsToken}`, {
+      method: 'POST',
+      headers: {
+        authorization: `bearer ${auth}`,
+        'apns-topic': topic,
+        'apns-push-type': 'alert',
+        'apns-priority': '10',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  return new Response(JSON.stringify({ success: true, alertId: body.alertId, status: 'EXPIRED' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+// MARK: - Admin override for rate limiting (emergency bypass)
 async function handleRateLimitOverride(request: Request, env: Env): Promise<Response> {
   const authResult = await authenticateRequest(request, env);
   if (authResult instanceof Response) return authResult;

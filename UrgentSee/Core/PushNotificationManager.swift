@@ -8,6 +8,8 @@ final class PushNotificationManager: NSObject, ObservableObject {
     
     @Published var apnsToken: String?
     @Published var isAuthorized: Bool = false
+    /// Set when the user taps a UrgentSee notification; the app presents the message.
+    @Published var receivedAlert: ReceivedAlert?
     
     private let apiEndpoint = "https://urgentsee-edge.pounds1.workers.dev/v1/user/token"
     
@@ -97,4 +99,19 @@ extension PushNotificationManager: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         return [.banner, .sound, .badge, .list]
     }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        if let alertId = userInfo["alertId"] as? String {
+            let sender = userInfo["senderName"] as? String ?? ""
+            self.receivedAlert = ReceivedAlert(id: alertId, senderName: sender)
+        }
+        completionHandler()
+    }
+}
+
+/// Identifiable payload for a tapped alert, so the UI can open the full message.
+struct ReceivedAlert: Identifiable {
+    let id: String
+    let senderName: String
 }

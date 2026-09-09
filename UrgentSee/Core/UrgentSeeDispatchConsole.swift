@@ -77,6 +77,9 @@ struct UrgentSeeDispatchConsole: View {
     @State private var dispatchToastColor = Color.green
     @State private var showNotice = false
     @State private var noticeMessage = ""
+    @State private var showDispatchModal = false
+    @State private var lastAlertId = ""
+    @State private var unsendActive = false
 
     @StateObject private var apiService = APIService.shared
     @StateObject private var recipientsManager = TrustCircleManager.shared
@@ -207,6 +210,16 @@ struct UrgentSeeDispatchConsole: View {
                 Text("Save current message as a quick template")
             }
             .overlay { toastOverlay }
+            .fullScreenCover(isPresented: $showDispatchModal) {
+                DispatchModalView(
+                    stage: dispatchStage,
+                    progress: dispatchProgress,
+                    textSize: settings.textSize,
+                    unsendActive: unsendActive,
+                    onUnsend: { Task { await unsendLast() } },
+                    onDone: { dismissDispatchModal() }
+                )
+            }
         }
     }
 
@@ -233,14 +246,9 @@ struct UrgentSeeDispatchConsole: View {
         VStack(spacing: 14) {
             headerSection
             recipientSection
-            templatesSection
             payloadSection
-            ttlDndRowSection
-            passiveAckSection
             dispatchButtonSection
-            if dispatchStage != .idle {
-                progressSection
-            }
+            templatesSection
             if !apiService.isAuthenticated {
                 authBannerSection
             }
@@ -420,7 +428,7 @@ struct UrgentSeeDispatchConsole: View {
                 if messageText.isEmpty {
                     let hasContact = selectedContact != nil
                     let placeholder = hasContact
-                        ? "Message for \(selectedContact!.displayName)..."
+                        ? "Message for " + recipientsManager.displayName(for: selectedContact!.userId) + "..."
                         : "Select a recipient first..."
                     Text(placeholder)
                         .font(.system(size: settings.textSize * 0.55))
@@ -463,119 +471,6 @@ struct UrgentSeeDispatchConsole: View {
         .opacity(animatedIn[3] ? 1 : 0)
         .scaleEffect(animatedIn[3] ? 1 : 0.9)
         .offset(y: animatedIn[3] ? 0 : 50)
-    }
-
-    // MARK: - TTL & DND Row
-
-    @ViewBuilder private var ttlDndRowSection: some View {
-        HStack(alignment: .top, spacing: 10) {
-            ttlSection
-            dndSection
-        }
-        .opacity(animatedIn[4] ? 1 : 0)
-        .scaleEffect(animatedIn[4] ? 1 : 0.9)
-        .offset(y: animatedIn[4] ? 0 : 60)
-    }
-
-    @ViewBuilder private var ttlSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("TTL EXPIRATION")
-                    .font(.system(size: settings.textSize * 0.35, weight: .bold, design: .monospaced))
-                    .foregroundColor(.red)
-
-                Spacer()
-
-                if selectedTTL == .untilReceived {
-                    Text("DEFAULT: RESENDS UNTIL READ")
-                        .font(.system(size: settings.textSize * 0.25, weight: .bold, design: .monospaced))
-                        .foregroundColor(.green)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.green.opacity(0.2))
-                        .cornerRadius(4)
-                }
-            }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 5) {
-                    ForEach(ttlOptions) { interval in
-                        ttlButton(for: interval)
-                    }
-                }
-                .padding(.horizontal, 2)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassmorphicBento(glowColor: .red)
-    }
-
-    @ViewBuilder private func ttlButton(for interval: TTLInterval) -> some View {
-        let isSelected = selectedTTL == interval
-        let isUntilReceived = interval == .untilReceived
-        let selectedColor: Color = isUntilReceived ? Color.green : Color.red
-        let bgColor: Color = isSelected ? selectedColor : Color.white.opacity(0.05)
-        let fgColor: Color = isSelected ? Color.white : Color.gray
-        let strokeColor: Color = (isSelected && isUntilReceived) ? Color.green.opacity(0.8) : Color.clear
-
-        Button(action: { selectedTTL = interval }) {
-            Text(interval.label)
-                .font(.system(size: settings.textSize * 0.45, weight: .bold, design: .monospaced))
-                .padding(.horizontal, settings.textSize * 0.35)
-                .padding(.vertical, settings.textSize * 0.3)
-                .background(bgColor)
-                .foregroundColor(fgColor)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(strokeColor, lineWidth: 2)
-                )
-        }
-    }
-
-    @ViewBuilder private var dndSection: some View {
-        VStack(spacing: 6) {
-            Image(systemName: "bell.badge.slash.fill")
-                .font(.system(size: settings.textSize * 0.75, weight: .bold))
-                .foregroundColor(.green)
-
-            Text("DND OVERRIDE")
-                .font(.system(size: settings.textSize * 0.3, weight: .black, design: .monospaced))
-                .foregroundColor(.green)
-
-            Text("ALWAYS ON")
-                .font(.system(size: settings.textSize * 0.25, weight: .bold, design: .monospaced))
-                .foregroundColor(.green.opacity(0.7))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .background(Color.green.opacity(0.2))
-                .cornerRadius(4)
-        }
-        .glassmorphicBento(glowColor: .green)
-    }
-
-    // MARK: - Passive ACK
-
-    @ViewBuilder private var passiveAckSection: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "shield.checkmark.fill")
-                .foregroundColor(.green)
-                .font(.system(size: settings.textSize * 0.65))
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text("PASSIVE REVERSE READ-RECEIPT")
-                    .font(.system(size: settings.textSize * 0.35, weight: .black, design: .monospaced))
-                    .foregroundColor(.white)
-                Text("Auto-sends confirmation when recipient unlocks device.")
-                    .font(.system(size: settings.textSize * 0.4))
-                    .foregroundColor(.gray)
-            }
-            Spacer()
-        }
-        .glassmorphicBento(glowColor: .green)
-        .opacity(animatedIn[5] ? 1 : 0)
-        .scaleEffect(animatedIn[5] ? 1 : 0.9)
-        .offset(y: animatedIn[5] ? 0 : 70)
     }
 
     // MARK: - Dispatch Button
@@ -759,6 +654,8 @@ struct UrgentSeeDispatchConsole: View {
         errorMessage = nil
         showError = false
         showDispatchToast = false
+        showDispatchModal = true
+        unsendActive = false
 
         let ttlMinutes = selectedTTL == .untilReceived ? 10080 : selectedTTL.minutes
         let isUntilReceived = selectedTTL == .untilReceived
@@ -776,8 +673,8 @@ struct UrgentSeeDispatchConsole: View {
                 dispatchStage = .dispatching
                 dispatchProgress = 0.50
 
-                _ = try await apiService.dispatchRushAlert(
-                    senderName: "Current User",
+                let response = try await apiService.dispatchRushAlert(
+                    senderName: apiService.deviceDisplayName,
                     recipientId: contact.userId,
                     messageText: messageText,
                     ttlMinutes: ttlMinutes,
@@ -799,13 +696,21 @@ struct UrgentSeeDispatchConsole: View {
                     isDispatching = false
                     dispatchStage = .confirmed
                     dispatchProgress = 1.0
+                    lastAlertId = response.alertId
                     saveRecipientMessage(messageText, for: contact.userId)
                     messageText = ""
+                    unsendActive = true
                     showDeliveryToast(confirmations)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                        dispatchStage = .idle
-                        dispatchProgress = 0.0
-                        dispatchStatus = "IDLE"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                        unsendActive = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 14.0) {
+                        dismissDispatchModal()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            dispatchStage = .idle
+                            dispatchProgress = 0.0
+                            dispatchStatus = "IDLE"
+                        }
                     }
                 }
             } catch let apiError as APIError {
@@ -816,6 +721,7 @@ struct UrgentSeeDispatchConsole: View {
                     errorMessage = apiError.localizedDescription
                     showError = true
                     showFailureToast(apiError.localizedDescription)
+                    dismissDispatchModal()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         dispatchStage = .idle
                         dispatchStatus = "IDLE"
@@ -830,6 +736,7 @@ struct UrgentSeeDispatchConsole: View {
                     errorMessage = error.localizedDescription
                     showError = true
                     showFailureToast(error.localizedDescription)
+                    dismissDispatchModal()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         dispatchStage = .idle
                         dispatchStatus = "IDLE"
@@ -878,6 +785,33 @@ struct UrgentSeeDispatchConsole: View {
         impact.impactOccurred()
         AudioServicesPlaySystemSound(1006)
     }
+
+    private func unsendLast() async {
+        guard !lastAlertId.isEmpty else { return }
+        do {
+            try await apiService.unsendAlert(alertId: lastAlertId)
+            await MainActor.run {
+                unsendActive = false
+                dispatchToastMessage = "🕑 Message unsent"
+                dispatchToastIcon = "arrow.uturn.backward.circle.fill"
+                dispatchToastColor = .orange
+                showDispatchToast = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    dismissDispatchModal()
+                }
+            }
+        } catch {
+            await MainActor.run {
+                noticeMessage = "Could not unsend: \(error.localizedDescription)"
+                showNotice = true
+            }
+        }
+    }
+
+    private func dismissDispatchModal() {
+        showDispatchModal = false
+        isDispatching = false
+    }
 }
 
 // MARK: - Supporting Views
@@ -908,7 +842,7 @@ struct RecipientPill: View {
                         .fill(contact.hasAppInstalled ? Color.green : Color.gray)
                         .frame(width: textSize * 0.25, height: textSize * 0.25)
 
-                    Text(contact.displayName)
+                    Text(TrustCircleManager.shared.displayName(for: contact.userId))
                         .font(.system(size: textSize * 0.5, weight: .bold))
                         .foregroundColor(.white)
 
@@ -1308,5 +1242,108 @@ struct GlassmorphicBentoModifier: ViewModifier {
 extension View {
     func glassmorphicBento(glowColor: Color = .red, cornerRadius: CGFloat = 20) -> some View {
         self.modifier(GlassmorphicBentoModifier(glowColor: glowColor, cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - Dispatch progress modal (animated intro, blurred background, unsend)
+
+struct DispatchModalView: View {
+    let stage: DispatchStage
+    let progress: Double
+    let textSize: Double
+    let unsendActive: Bool
+    let onUnsend: () -> Void
+    let onDone: () -> Void
+
+    @State private var appeared = false
+    @State private var blurRadius: CGFloat = 0
+
+    var body: some View {
+        ZStack {
+            // Animated blurred background
+            Color.black.opacity(0.55)
+                .blur(radius: blurRadius)
+                .ignoresSafeArea()
+
+            VStack(spacing: 18) {
+                if stage == .confirmed {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: textSize * 1.4, weight: .bold))
+                        .foregroundColor(.green)
+                        .transition(.scale.combined(with: .opacity))
+
+                    Text("MESSAGE SENT")
+                        .font(.system(size: textSize * 0.6, weight: .black, design: .monospaced))
+                        .foregroundColor(.white)
+
+                    Text("Resending until read")
+                        .font(.system(size: textSize * 0.4))
+                        .foregroundColor(.gray)
+                } else if stage == .failed {
+                    Image(systemName: "xmark.octagon.fill")
+                        .font(.system(size: textSize * 1.4, weight: .bold))
+                        .foregroundColor(.red)
+                        .transition(.scale.combined(with: .opacity))
+                    Text("SEND FAILED")
+                        .font(.system(size: textSize * 0.6, weight: .black, design: .monospaced))
+                        .foregroundColor(.red)
+                } else {
+                    DispatchProgressView(stage: stage, progress: progress, textSize: textSize)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+
+                if stage == .confirmed {
+                    if unsendActive {
+                        Button(action: onUnsend) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.uturn.backward.circle.fill")
+                                Text("UNSEND MESSAGE")
+                                    .font(.system(size: textSize * 0.45, weight: .black, design: .monospaced))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, textSize * 0.5)
+                            .background(Color.orange)
+                            .foregroundColor(.white)
+                            .cornerRadius(14)
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                    } else {
+                        Text("Unsend window closed")
+                            .font(.system(size: textSize * 0.35))
+                            .foregroundColor(.gray)
+                            .transition(.opacity)
+                    }
+
+                    Button(action: onDone) {
+                        Text("DONE")
+                            .font(.system(size: textSize * 0.45, weight: .black, design: .monospaced))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, textSize * 0.45)
+                            .background(Color.white.opacity(0.1))
+                            .foregroundColor(.white)
+                            .cornerRadius(14)
+                    }
+                }
+            }
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color(white: 0.08).opacity(0.96))
+                    .shadow(color: .black.opacity(0.5), radius: 30, x: 0, y: 10)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(stage == .failed ? Color.red.opacity(0.6) : Color.green.opacity(0.4), lineWidth: 1.5)
+            )
+            .offset(x: appeared ? 0 : 0, y: appeared ? 0 : -60)
+            .scaleEffect(appeared ? 1 : 0.85)
+            .opacity(appeared ? 1 : 0)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.7)) {
+                appeared = true
+                blurRadius = 18
+            }
+        }
     }
 }

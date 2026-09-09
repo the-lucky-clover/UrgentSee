@@ -9,6 +9,9 @@ final class TrustCircleManager: ObservableObject {
     @Published var pendingInvites: [TrustCircleInvite] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    /// Locally-assigned display names for recipients, keyed by their userId.
+    /// The person who configures the pair (e.g. the master) can name the recipient.
+    @Published var displayNames: [String: String] = [:]
     
     private let apiService = APIService.shared
     
@@ -127,7 +130,32 @@ final class TrustCircleManager: ObservableObject {
         }
     }
     
-    private init() {}
+    private init() {
+        if let stored = UserDefaults.standard.dictionary(forKey: "recipient_display_names") as? [String: String] {
+            displayNames = stored
+        }
+    }
+
+    /// Returns the locally-assigned name for a recipient, or their userId as a fallback.
+    func displayName(for userId: String) -> String {
+        displayNames[userId] ?? userId
+    }
+
+    /// Assigns (or clears, when empty) a custom local name for a recipient.
+    func setDisplayName(_ name: String, for userId: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            displayNames.removeValue(forKey: userId)
+        } else {
+            displayNames[userId] = trimmed
+        }
+        persistDisplayNames()
+    }
+
+    private func persistDisplayNames() {
+        UserDefaults.standard.set(displayNames, forKey: "recipient_display_names")
+        objectWillChange.send()
+    }
     
     func loadTrustCircle() async {
         guard apiService.isAuthenticated else { return }

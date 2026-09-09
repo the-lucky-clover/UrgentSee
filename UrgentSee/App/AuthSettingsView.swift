@@ -98,7 +98,7 @@ struct InviteSheet: View {
     @EnvironmentObject private var settings: AccessibilitySettings
     @Binding var isPresented: Bool
     @Binding var inviteId: String
-    @StateObject private var recipientsManager = TrustCircleManager.shared
+    @StateObject private var trustManager = TrustCircleManager.shared
     @State private var errorMessage: String?
     
     var body: some View {
@@ -125,7 +125,7 @@ struct InviteSheet: View {
                 Button("Send Invite") {
                     Task {
                         do {
-                            try await recipientsManager.inviteUser(palId: inviteId)
+                            try await trustManager.inviteUser(palId: inviteId)
                             isPresented = false
                         } catch {
                             errorMessage = error.localizedDescription
@@ -153,15 +153,16 @@ struct InviteSheet: View {
 
 struct TrustCircleListView: View {
     @EnvironmentObject private var settings: AccessibilitySettings
-    @StateObject private var recipientsManager = TrustCircleManager.shared
+    @StateObject private var trustManager = TrustCircleManager.shared
     @State private var showingInviteSheet = false
     @State private var inviteId = ""
     @State private var errorMessage: String?
+    @State private var pendingNameRecipient: RecipientToName?
     
     var body: some View {
         NavigationView {
             Group {
-                if recipientsManager.activeMembers.isEmpty {
+                if trustManager.activeMembers.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "person.2.circle")
                             .font(.system(size: settings.textSize * 2.5))
@@ -183,11 +184,13 @@ struct TrustCircleListView: View {
                     .padding()
                 } else {
                     List {
-                        ForEach(recipientsManager.activeMembers) { member in
+                        ForEach(trustManager.activeMembers) { member in
                             TrustCircleMemberRow(
                                 member: member,
-                                onBlock: { Task { try? await recipientsManager.blockUser(palId: member.userId) } },
-                                onRemove: { Task { try? await recipientsManager.removeUser(palId: member.userId) } },
+                                displayName: trustManager.displayName(for: member.userId),
+                                onBlock: { Task { try? await trustManager.blockUser(palId: member.userId) } },
+                                onRemove: { Task { try? await trustManager.removeUser(palId: member.userId) } },
+                                onRename: { pendingNameRecipient = RecipientToName(id: member.userId) },
                                 textSize: settings.textSize
                             )
                         }
@@ -208,6 +211,12 @@ struct TrustCircleListView: View {
             }
             .sheet(isPresented: $showingInviteSheet) {
                 InviteSheet(isPresented: $showingInviteSheet, inviteId: $inviteId)
+            }
+            .sheet(item: $pendingNameRecipient) { pending in
+                NameRecipientSheet(userId: pending.id, onSave: { name in
+                    trustManager.setDisplayName(name, for: pending.id)
+                })
+                .environmentObject(settings)
             }
             .alert("Error", isPresented: Binding(
                 get: { errorMessage != nil },
@@ -238,6 +247,7 @@ struct AuthSettingsView: View {
     @State private var claimCode = ""
     @State private var authStatusText = "checking…"
     @State private var testFeedback: String?
+    @State private var showFocusGuidance = false
 
     var body: some View {
         NavigationView {
@@ -389,6 +399,27 @@ struct AuthSettingsView: View {
                     }
                 }
 
+                if apiService.isAuthenticated {
+                    Section(header: Text("DEVICE NAME")) {
+                        TextField("Name shown to recipients", text: Binding(
+                            get: { apiService.deviceDisplayName },
+                            set: { apiService.deviceDisplayName = $0 }
+                        ))
+                        .font(.system(size: settings.textSize * 0.7))
+                        Text("This is the name recipients see on your alerts.")
+                            .font(.system(size: settings.textSize * 0.4))
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Section(header: Text("DND OVERRIDE SETUP")) {
+                    Button(action: { showFocusGuidance = true }) {
+                        Label("Allow UrgentSee in Focus / DND", systemImage: "bell.badge.slash.fill")
+                            .font(.system(size: settings.textSize * 0.65, weight: .medium))
+                    }
+                    .foregroundColor(.green)
+                }
+
                 Section(header: Text("TEXT SIZE")) {
                     Stepper("\(Int(settings.textSize)) pt", value: $settings.textSize, in: 20...60)
                         .foregroundColor(.primary)
@@ -444,8 +475,7 @@ struct AuthSettingsView: View {
                     .environmentObject(apiService)
                     .environmentObject(settings)
             }
-            .sheet(isPresented: $claimSheetPresented) {
-                ClaimCodeSheet(
+            .sheet(isPresented: $claimSheetPresented) {                ClaimCodeSheet(
                     isPresented: $claimSheetPresented,
                     code: $claimCode,
                     onClaim: { code in
@@ -463,6 +493,9 @@ struct AuthSettingsView: View {
                     }
                 )
                 .environmentObject(settings)
+            }
+            .sheet(isPresented: $showFocusGuidance) {
+                FocusGuidanceView(onClose: { showFocusGuidance = false })
             }
         }
     }

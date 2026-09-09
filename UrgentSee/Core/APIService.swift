@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import UIKit
 
 @MainActor
 final class APIService: ObservableObject {
@@ -42,7 +43,7 @@ final class APIService: ObservableObject {
     }
     
     var deviceDisplayName: String {
-        get { UserDefaults.standard.string(forKey: "device_display_name") ?? "UrgentSee Device" }
+        get { UserDefaults.standard.string(forKey: "device_display_name") ?? UIDevice.current.name }
         set { UserDefaults.standard.set(newValue, forKey: "device_display_name") }
     }
     
@@ -167,6 +168,61 @@ final class APIService: ObservableObject {
         let result = try JSONDecoder().decode(PublicKeyResponse.self, from: data)
         return result.publicKey
     }
+
+    /// Fetches the sealed message payload for an alert (called when the recipient
+    /// taps the notification so they can decrypt and read the full message).
+    func fetchAlertDetail(alertId: String) async throws -> (ciphertext: String, preview: String) {
+        guard let token = loadToken() else { throw APIError.notAuthenticated }
+        guard let url = URL(string: "\(baseURL)/v1/rush/alerts/\(alertId)") else { throw APIError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+
+        if httpResponse.statusCode == 401 {
+            clearToken()
+            throw APIError.unauthorized
+        }
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(message: "Failed to load message", statusCode: httpResponse.statusCode)
+        }
+
+        struct AlertResponse: Codable {
+            let payloadCiphertext: String
+            let preview: String?
+        }
+        let result = try JSONDecoder().decode(AlertResponse.self, from: data)
+        return (result.payloadCiphertext, result.preview ?? "")
+    }
+
+    /// Recalls an alert within the unsend window (sender side).
+    func unsendAlert(alertId: String) async throws {
+        guard let token = loadToken() else { throw APIError.notAuthenticated }
+        guard let url = URL(string: "\(baseURL)/v1/rush/unsend") else { throw APIError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(["alertId": alertId])
+
+        let (_, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+
+        switch httpResponse.statusCode {
+        case 200: return
+        case 401:
+            clearToken()
+            throw APIError.unauthorized
+        case 400:
+            throw APIError.serverError(message: "Unsend window expired", statusCode: 400)
+        default:
+            throw APIError.serverError(message: "Failed to unsend", statusCode: httpResponse.statusCode)
+        }
+    }
     
     private func saveToken(_ token: String) {
         let data = token.data(using: .utf8)!
@@ -250,7 +306,8 @@ final class APIService: ObservableObject {
             messageText: encryptedMessage, // Send encrypted message
             ttlMinutes: ttlMinutes,
             isCritical: isCritical,
-            untilReceived: untilReceived
+            untilReceived: untilReceived,
+            previewText: String(messageText.prefix(100))
         )
         
         request.httpBody = try JSONEncoder().encode(body)
@@ -352,6 +409,7 @@ struct DispatchRequest: Codable {
     let ttlMinutes: Int
     let isCritical: Bool
     let untilReceived: Bool
+    let previewText: String
 }
 
 struct DispatchResponse: Codable {
