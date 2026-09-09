@@ -78,8 +78,6 @@ struct UrgentSeeDispatchConsole: View {
     @State private var showNotice = false
     @State private var noticeMessage = ""
     @State private var showDispatchModal = false
-    @State private var lastAlertId = ""
-    @State private var unsendActive = false
     @State private var renameRecipient: RecipientToName?
 
     @StateObject private var apiService = APIService.shared
@@ -216,8 +214,6 @@ struct UrgentSeeDispatchConsole: View {
                     stage: dispatchStage,
                     progress: dispatchProgress,
                     textSize: settings.textSize,
-                    unsendActive: unsendActive,
-                    onUnsend: { Task { await unsendLast() } },
                     onDone: { dismissDispatchModal() }
                 )
             }
@@ -673,7 +669,6 @@ struct UrgentSeeDispatchConsole: View {
         showError = false
         showDispatchToast = false
         showDispatchModal = true
-        unsendActive = false
 
         let ttlMinutes = selectedTTL == .untilReceived ? 10080 : selectedTTL.minutes
         let isUntilReceived = selectedTTL == .untilReceived
@@ -691,7 +686,7 @@ struct UrgentSeeDispatchConsole: View {
                 dispatchStage = .dispatching
                 dispatchProgress = 0.50
 
-                let response = try await apiService.dispatchRushAlert(
+                _ = try await apiService.dispatchRushAlert(
                     senderName: apiService.deviceDisplayName,
                     recipientId: contact.userId,
                     messageText: messageText,
@@ -714,16 +709,11 @@ struct UrgentSeeDispatchConsole: View {
                     isDispatching = false
                     dispatchStage = .confirmed
                     dispatchProgress = 1.0
-                    lastAlertId = response.alertId
                     saveRecipientMessage(messageText, for: contact.userId)
                     messageText = ""
-                    unsendActive = true
                     Haptics.success()
                     showDeliveryToast(confirmations)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-                        unsendActive = false
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 14.0) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                         dismissDispatchModal()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             dispatchStage = .idle
@@ -801,29 +791,6 @@ struct UrgentSeeDispatchConsole: View {
 
         Haptics.error()
         AudioServicesPlaySystemSound(1006)
-    }
-
-    private func unsendLast() async {
-        guard !lastAlertId.isEmpty else { return }
-        do {
-            try await apiService.unsendAlert(alertId: lastAlertId)
-            await MainActor.run {
-                Haptics.warning()
-                unsendActive = false
-                dispatchToastMessage = "🕑 Message unsent"
-                dispatchToastIcon = "arrow.uturn.backward.circle.fill"
-                dispatchToastColor = .orange
-                showDispatchToast = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    dismissDispatchModal()
-                }
-            }
-        } catch {
-            await MainActor.run {
-                noticeMessage = "Could not unsend: \(error.localizedDescription)"
-                showNotice = true
-            }
-        }
     }
 
     private func dismissDispatchModal() {
@@ -1269,8 +1236,6 @@ struct DispatchModalView: View {
     let stage: DispatchStage
     let progress: Double
     let textSize: Double
-    let unsendActive: Bool
-    let onUnsend: () -> Void
     let onDone: () -> Void
 
     @State private var appeared = false
@@ -1311,27 +1276,6 @@ struct DispatchModalView: View {
                 }
 
                 if stage == .confirmed {
-                    if unsendActive {
-                        Button(action: onUnsend) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.uturn.backward.circle.fill")
-                                Text("UNSEND MESSAGE")
-                                    .font(.system(size: textSize * 0.45, weight: .black, design: .monospaced))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, textSize * 0.5)
-                            .background(Color.orange)
-                            .foregroundColor(.white)
-                            .cornerRadius(14)
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                    } else {
-                        Text("Unsend window closed")
-                            .font(.system(size: textSize * 0.35))
-                            .foregroundColor(.gray)
-                            .transition(.opacity)
-                    }
-
                     Button(action: onDone) {
                         Text("DONE")
                             .font(.system(size: textSize * 0.45, weight: .black, design: .monospaced))
