@@ -6,6 +6,7 @@ export interface Env {
   APNS_AUTH_KEY: string;
   APNS_KEY_ID: string;
   APNS_TEAM_ID: string;
+  APNS_ENV: string;
   JWT_SECRET: string;
 }
 
@@ -462,6 +463,7 @@ interface TrustCircleMember {
   created_at: string;
   pal_name?: string;
   pal_public_key?: string;
+  direction?: 'sent' | 'received';
 }
 
 async function handleTrustCircleList(request: Request, env: Env): Promise<Response> {
@@ -698,6 +700,8 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
     messageText: string; // This is now the E2EE encrypted payload
     ttlMinutes: number;
     isCritical: boolean;
+    untilReceived?: boolean;
+    previewText?: string;
   };
 
   const { senderId, senderName, recipientId, messageText, ttlMinutes = 15, isCritical = true, untilReceived = false, previewText } = body;
