@@ -60,6 +60,37 @@ final class PushNotificationManager: NSObject, ObservableObject {
             print("[UrgentSee] Failed to sync APNs token: \(error.localizedDescription)")
         }
     }
+
+    // MARK: - Diagnostics
+
+    func currentAuthorizationStatus() async -> UNAuthorizationStatus {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        return settings.authorizationStatus
+    }
+
+    func sendTestLocalNotification() {
+        scheduleTestNotification { _ in }
+    }
+
+    /// Schedules an immediate local notification and reports scheduling errors back.
+    func scheduleTestNotification(completion: @escaping (String?) -> Void) {
+        let content = UNMutableNotificationContent()
+        content.title = "UrgentSee Local Test"
+        content.body = "If you can see this, notifications are working on this device."
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: "urgentsee.local.test.\(UUID().uuidString)", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("[UrgentSee] Local test failed: \(error.localizedDescription)")
+                    completion(error.localizedDescription)
+                } else {
+                    completion(nil)
+                }
+            }
+        }
+    }
 }
 
 extension PushNotificationManager: UNUserNotificationCenterDelegate {

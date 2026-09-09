@@ -751,7 +751,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
   }
 
   // Standard alert notification so the recipient's phone surfaces it immediately
-  // Dev env: use time-sensitive so no Critical Alert entitlement is required to display.
+  // Dev env: plain alert (no special interruption level) so nothing can suppress it.
   const useCritical = isCritical && env.APNS_ENV === 'production';
   const apnsPayload = {
     aps: {
@@ -761,15 +761,14 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
           ? 'URGENT message from ' + (senderName || 'a recipient')
           : 'Message from ' + (senderName || 'a recipient'),
       },
-      sound: useCritical
-        ? {
-            critical: 1,
-            name: 'default',
-            volume: 1.0,
-          }
-        : 'default',
-      'interruption-level': useCritical ? 'critical' : 'time-sensitive',
+      sound: 'default',
       'thread-id': alertId,
+      ...(useCritical
+        ? {
+            'interruption-level': 'critical',
+            sound: { critical: 1, name: 'default', volume: 1.0 },
+          }
+        : {}),
     },
     alertId,
     senderName: senderName || '',
@@ -1044,3 +1043,5 @@ async function logTelemetryEvent(
     console.error('[UrgentSee] Failed to log telemetry:', e);
   }
 }
+
+

@@ -225,6 +225,7 @@ struct AuthSettingsView: View {
     @EnvironmentObject private var settings: AccessibilitySettings
     @StateObject private var apiService = APIService.shared
     @StateObject private var recipientsManager = TrustCircleManager.shared
+    @StateObject private var pushManager = PushNotificationManager.shared
     @State private var userId = ""
     @State private var showingAlert = false
     @State private var alertMessage = ""
@@ -235,6 +236,8 @@ struct AuthSettingsView: View {
     @State private var isBusy = false
     @State private var claimSheetPresented = false
     @State private var claimCode = ""
+    @State private var authStatusText = "checking…"
+    @State private var testFeedback: String?
 
     var body: some View {
         NavigationView {
@@ -250,6 +253,10 @@ struct AuthSettingsView: View {
                                     .font(.system(size: settings.textSize * 0.75, weight: .semibold))
                                 Text("Recipient ID: \(apiService.currentUserId ?? "Unknown")")
                                     .font(.system(size: settings.textSize * 0.6))
+                                    .foregroundColor(.secondary)
+                                let tokenSuffix = pushManager.apnsToken.map { String($0.suffix(8)) } ?? "none"
+                                Text("Push token: …\(tokenSuffix)")
+                                    .font(.system(size: settings.textSize * 0.5, design: .monospaced))
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -358,6 +365,30 @@ struct AuthSettingsView: View {
                     }
                 }
                 
+                if apiService.isAuthenticated {
+                    Section(header: Text("PUSH DIAGNOSTIC")) {
+                        Text("Authorization: \(authStatusText)")
+                            .font(.system(size: settings.textSize * 0.55))
+                        let tokenSuffix = pushManager.apnsToken.map { String($0.suffix(8)) } ?? "none"
+                        Text("Device token: …\(tokenSuffix)")
+                            .font(.system(size: settings.textSize * 0.5, design: .monospaced))
+                            .foregroundColor(.secondary)
+                        Button("Send Test Notification") {
+                            testFeedback = "scheduling…"
+                            pushManager.scheduleTestNotification { error in
+                                testFeedback = error.map { "Error: \($0)" } ?? "Scheduled ✓ — check for the banner"
+                            }
+                        }
+                        .font(.system(size: settings.textSize * 0.6, weight: .medium))
+                        .foregroundColor(.blue)
+                        if let testFeedback {
+                            Text(testFeedback)
+                                .font(.system(size: settings.textSize * 0.5))
+                                .foregroundColor(testFeedback.hasPrefix("Error") ? .red : .green)
+                        }
+                    }
+                }
+
                 Section(header: Text("TEXT SIZE")) {
                     Stepper("\(Int(settings.textSize)) pt", value: $settings.textSize, in: 20...60)
                         .foregroundColor(.primary)
@@ -385,6 +416,19 @@ struct AuthSettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                Task {
+                    let status = await pushManager.currentAuthorizationStatus()
+                    switch status {
+                    case .authorized: authStatusText = "Authorized"
+                    case .denied: authStatusText = "DENIED"
+                    case .provisional: authStatusText = "Provisional"
+                    case .ephemeral: authStatusText = "Ephemeral"
+                    case .notDetermined: authStatusText = "Not Determined"
+                    @unknown default: authStatusText = "Unknown"
+                    }
+                }
+            }
             .alert("Info", isPresented: $showingAlert) {
                 Button("OK", role: .cancel) { }
                 if alertMessage.contains("reset") {
