@@ -184,6 +184,11 @@ struct OnboardingView: View {
             stepRow(number: "2", title: "Choose who to reach", body: "On the Dispatch tab, select the recipient you paired with.")
             stepRow(number: "3", title: "Send", body: "Type your urgent message and tap SEND MESSAGE. It arrives above everything on their phone.")
 
+            Text("Next: a setup screen shows how to make banners persistent and allow UrgentSee through Focus / Do Not Disturb.")
+                .font(.system(size: 13))
+                .foregroundColor(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+
             Spacer()
 
             Button(action: {
@@ -237,20 +242,20 @@ struct FocusGuidanceView: View {
                     .font(.system(size: 34, weight: .bold))
                     .foregroundColor(.green)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Allow UrgentSee to break through DND / Focus")
+                    Text("UrgentSee delivery setup")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
-                    Text("iOS has no direct shortcut to Focus, so follow these steps:")
+                    Text("iOS has no direct shortcut to these screens, so follow the steps:")
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
                 }
             }
 
-            guidanceRow(icon: "1.circle.fill", text: "Tap OPEN SETTINGS below (opens the iPhone Settings app)")
-            guidanceRow(icon: "2.circle.fill", text: "Tap Focus")
-            guidanceRow(icon: "3.circle.fill", text: "Tap a Focus you use (Do Not Disturb, Personal, Sleep…)")
-            guidanceRow(icon: "4.circle.fill", text: "Under Allowed Notifications tap Add → choose UrgentSee")
-            guidanceRow(icon: "5.circle.fill", text: "Repeat for each Focus you want UrgentSee to break through")
+            guidanceRow(icon: "1.circle.fill", text: "Tap OPEN SETTINGS below (opens UrgentSee's page in the iPhone Settings app)")
+            guidanceRow(icon: "2.circle.fill", text: "Tap Notifications → UrgentSee")
+            guidanceRow(icon: "3.circle.fill", text: "Set Banners to Persistent (and Sounds ON) — this keeps urgent alerts on screen")
+            guidanceRow(icon: "4.circle.fill", text: "Go back → tap Focus → pick each Focus you use (Do Not Disturb, Personal, Sleep…)")
+            guidanceRow(icon: "5.circle.fill", text: "Under Allowed Notifications tap Add → choose UrgentSee")
 
             Spacer()
 
