@@ -283,7 +283,6 @@ struct FocusGuidanceView: View {
         }
         .padding(22)
         .background(Color.black.ignoresSafeArea())
-        .presentationDetents([.medium])
     }
 
     private func guidanceRow(icon: String, text: String) -> some View {
