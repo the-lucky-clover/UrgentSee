@@ -351,6 +351,48 @@ final class APIService: ObservableObject {
         }
     }
     
+    // MARK: - History + Telemetry
+
+    func fetchHistory(limit: Int = 50, offset: Int = 0) async throws -> HistoryResponse {
+        guard let token = loadToken() else { throw APIError.notAuthenticated }
+        guard let url = URL(string: "\(baseURL)/v1/rush/history?limit=\(limit)&offset=\(offset)") else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        switch httpResponse.statusCode {
+        case 200:
+            return try JSONDecoder().decode(HistoryResponse.self, from: data)
+        case 401:
+            clearToken()
+            throw APIError.unauthorized
+        default:
+            throw APIError.serverError(message: "Failed to load history", statusCode: httpResponse.statusCode)
+        }
+    }
+
+    func fetchTelemetrySummary() async throws -> TelemetrySummary {
+        guard let token = loadToken() else { throw APIError.notAuthenticated }
+        guard let url = URL(string: "\(baseURL)/v1/telemetry/summary") else { throw APIError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        switch httpResponse.statusCode {
+        case 200:
+            return try JSONDecoder().decode(TelemetrySummary.self, from: data)
+        case 401:
+            clearToken()
+            throw APIError.unauthorized
+        default:
+            throw APIError.serverError(message: "Failed to load telemetry", statusCode: httpResponse.statusCode)
+        }
+    }
+
     // MARK: - Authentication Provider Protocol
     
     /// Implement this protocol to provide real authentication from your auth server (Firebase, Supabase, Auth0, etc.)
@@ -417,6 +459,66 @@ struct DispatchResponse: Codable {
     let alertId: String
     let status: String
     let expiresAt: String
+}
+
+// MARK: - History / Telemetry Models
+
+struct HistoryMessage: Codable, Identifiable {
+    var id: String { alertId }
+    let alertId: String
+    let senderId: String
+    let recipientId: String
+    let direction: String
+    let preview: String?
+    let isCritical: Bool
+    let ttlMinutes: Int
+    let untilReceived: Bool
+    let retryCount: Int
+    let status: String
+    let expiresAt: String
+    let acknowledgedAt: String?
+    let createdAt: String
+
+    var isSent: Bool { direction == "sent" }
+
+    var statusColorName: String { status }
+}
+
+struct HistoryResponse: Codable {
+    let messages: [HistoryMessage]
+    let total: Int
+    let sent: Int
+    let received: Int
+    let seen: Int
+    let limit: Int
+    let offset: Int
+}
+
+struct TelemetryCount: Codable {
+    let eventType: String
+    let count: Int
+}
+
+struct TelemetryEvent: Codable, Identifiable {
+    var id: String { eventId }
+    let eventId: String
+    let eventType: String
+    let latencyMs: Int?
+    let deliveryStatus: String?
+    let createdAt: String
+}
+
+struct DispatchStats: Codable {
+    let totalDispatched: Int
+    let seen: Int
+    let critical: Int
+    let avgRetries: Double
+}
+
+struct TelemetrySummary: Codable {
+    let byType: [TelemetryCount]
+    let recent: [TelemetryEvent]
+    let dispatchStats: DispatchStats
 }
 
 struct ErrorResponse: Codable {

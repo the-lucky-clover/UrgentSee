@@ -7,25 +7,35 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		13E211FA99FD3E1C0452F92F /* E2EERoundtripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8885C919A5C93FE6027D03 /* E2EERoundtripTests.swift */; };
 		19C1EAFFAB731CC9F1FF0DF9 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46637A54352B74F5AB8DEB8 /* SharedModels.swift */; };
+		363035DB06362F563CC93C82 /* RecipientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512B8C992DFE5B72CBB765D1 /* RecipientsView.swift */; };
 		44106E60E49DE0F0CAAE9383 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF0248BF5F4689A94DF9F1F /* PushNotificationManager.swift */; };
 		44579A3A40F5F097D169C2AE /* UrgentSeeLiveActivityExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA8C819A062DB1DB1D33D11 /* UrgentSeeLiveActivityExtension.swift */; };
 		463B264EC6D55461C93F082E /* UrgentSeeDispatchConsole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F353AAA0A318185B77A6036 /* UrgentSeeDispatchConsole.swift */; };
+		4B422525DB617DB71129F374 /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF36547E34A3286A7180FEA /* AccessibilitySettings.swift */; };
 		4BA6EED8EB74D6D64E6DE737 /* UrgentSeeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC602F30695AFE749EB64D12 /* UrgentSeeApp.swift */; };
+		50546968FA6EC61E7588DC38 /* E2EEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */; };
+		55D2787D01E89B631027885C /* AuthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42521DBCA5430022EECEEE7A /* AuthSettingsView.swift */; };
 		6078ABEE4EB42A7D497B1976 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F649A65183D57ADEDC54245 /* DesignSystem.swift */; };
+		6180D285F2DF179773F2F87B /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF36547E34A3286A7180FEA /* AccessibilitySettings.swift */; };
 		6A6D081D3A1BDB44C95D64C4 /* libUrgentSeeShared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */; };
+		78D088FF9EE7E237BCF35457 /* UrgentSeeDispatchConsole.swift.bak in Resources */ = {isa = PBXBuildFile; fileRef = 33C24A1C3A5C27A2E2761A15 /* UrgentSeeDispatchConsole.swift.bak */; };
 		8C9724E1417BD0939B4BD4E7 /* UrgentSeeAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29304AD6CD2414C0278CBC30 /* UrgentSeeAttributes.swift */; };
 		99436D7EF43F4AD3CF7E71C4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 920020BA5DFCB06267D1C921 /* Assets.xcassets */; };
+		A3D563F3385FAE0B6286A12E /* AuthSettingsView.swift.bak in Resources */ = {isa = PBXBuildFile; fileRef = AB2BE15FA6D557DB380E4852 /* AuthSettingsView.swift.bak */; };
+		B5A968CE74EDC8EAD22BD5C1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EDD3ECA0BCDAC91F7DCF85 /* SettingsView.swift */; };
+		B85146015A1D45D588B3EE4C /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F649A65183D57ADEDC54245 /* DesignSystem.swift */; };
 		BBE7B01640FEB7D2F128273E /* libUrgentSeeShared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */; };
+		C2AFC226A3DA5D245934E510 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF3F95BDD2ADC0BECAB020 /* HistoryView.swift */; };
 		C438DCD9A92EB0AAD90263D6 /* E2EEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */; };
+		CAEF621FAD8B99CE11BD298D /* CyberpunkDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB348EA347556E11E3CCF828 /* CyberpunkDesignSystem.swift */; };
+		CD04611CF4F920CB618282C1 /* CyberpunkDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB348EA347556E11E3CCF828 /* CyberpunkDesignSystem.swift */; };
 		D325039F21A97760322D00F9 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766C356C46A664B71745D758 /* APIService.swift */; };
+		DA77EC95B3696EDCF256720E /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766C356C46A664B71745D758 /* APIService.swift */; };
 		E5620F15A06391DB8A5CB10B /* ReverseAckService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B281B986529B7C8B108FA7F8 /* ReverseAckService.swift */; };
-		E72D4A8792FA6A31356E846B /* RecipientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71659558B1F760C9216DADA6 /* RecipientsView.swift */; };
+		E9CDC70F5E23A8B118DE03EE /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46637A54352B74F5AB8DEB8 /* SharedModels.swift */; };
 		EF47D5E1F95FDA2942821124 /* TrustCircleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF870A86A01CFDBE5F0FED9E /* TrustCircleManager.swift */; };
-		502941AEF3CE4A72A607D9A7B26316F3 /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3777948E294C4616B256C60F99137639 /* AccessibilitySettings.swift */; };
-		895B85BC77B944BFB41AB4334CFED853 /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3777948E294C4616B256C60F99137639 /* AccessibilitySettings.swift */; };
-		B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7 /* AuthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6 /* AuthSettingsView.swift */; };
-		D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,26 +59,30 @@
 		0F353AAA0A318185B77A6036 /* UrgentSeeDispatchConsole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeDispatchConsole.swift; sourceTree = "<group>"; };
 		0F649A65183D57ADEDC54245 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		29304AD6CD2414C0278CBC30 /* UrgentSeeAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeAttributes.swift; sourceTree = "<group>"; };
-		39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libUrgentSeeShared.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		33C24A1C3A5C27A2E2761A15 /* UrgentSeeDispatchConsole.swift.bak */ = {isa = PBXFileReference; path = UrgentSeeDispatchConsole.swift.bak; sourceTree = "<group>"; };
+		39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libUrgentSeeShared.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		41299757B581BBC84A65DDCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		71659558B1F760C9216DADA6 /* RecipientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipientsView.swift; sourceTree = "<group>"; };
+		42521DBCA5430022EECEEE7A /* AuthSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSettingsView.swift; sourceTree = "<group>"; };
+		512B8C992DFE5B72CBB765D1 /* RecipientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipientsView.swift; sourceTree = "<group>"; };
+		5EF36547E34A3286A7180FEA /* AccessibilitySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettings.swift; sourceTree = "<group>"; };
+		6BCF3F95BDD2ADC0BECAB020 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		766C356C46A664B71745D758 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2EEManager.swift; sourceTree = "<group>"; };
 		920020BA5DFCB06267D1C921 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A5629B8B7CC3C1CADA3F1F1E /* UrgentSeeTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = UrgentSeeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB2BE15FA6D557DB380E4852 /* AuthSettingsView.swift.bak */ = {isa = PBXFileReference; path = AuthSettingsView.swift.bak; sourceTree = "<group>"; };
 		AC602F30695AFE749EB64D12 /* UrgentSeeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeApp.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6 /* AuthSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthSettingsView.swift; sourceTree = "<group>"; };
-		C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-
 		ACA8C819A062DB1DB1D33D11 /* UrgentSeeLiveActivityExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrgentSeeLiveActivityExtension.swift; sourceTree = "<group>"; };
-		AE9045E934B263EACC8D85FC /* UrgentSee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UrgentSee.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE9045E934B263EACC8D85FC /* UrgentSee.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = UrgentSee.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1EDD3ECA0BCDAC91F7DCF85 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B281B986529B7C8B108FA7F8 /* ReverseAckService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReverseAckService.swift; sourceTree = "<group>"; };
 		B80CFBCD57274132A604359C /* UrgentSeeLiveActivity.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UrgentSeeLiveActivity.entitlements; sourceTree = "<group>"; };
+		BD8885C919A5C93FE6027D03 /* E2EERoundtripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2EERoundtripTests.swift; sourceTree = "<group>"; };
 		C46637A54352B74F5AB8DEB8 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
-		3777948E294C4616B256C60F99137639 /* AccessibilitySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettings.swift; sourceTree = "<group>"; };
-
 		D6A787EDCDE26D1BF3CA99D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DDF0248BF5F4689A94DF9F1F /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
-		FA9937EA1E048FA4787965F9 /* UrgentSeeLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = UrgentSeeLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EB348EA347556E11E3CCF828 /* CyberpunkDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkDesignSystem.swift; sourceTree = "<group>"; };
+		FA9937EA1E048FA4787965F9 /* UrgentSeeLiveActivityExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = UrgentSeeLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF870A86A01CFDBE5F0FED9E /* TrustCircleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustCircleManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -105,11 +119,13 @@
 			children = (
 				766C356C46A664B71745D758 /* APIService.swift */,
 				76CA143F6BF9BA3806FAB4B5 /* E2EEManager.swift */,
+				6BCF3F95BDD2ADC0BECAB020 /* HistoryView.swift */,
 				DDF0248BF5F4689A94DF9F1F /* PushNotificationManager.swift */,
+				512B8C992DFE5B72CBB765D1 /* RecipientsView.swift */,
 				B281B986529B7C8B108FA7F8 /* ReverseAckService.swift */,
 				FF870A86A01CFDBE5F0FED9E /* TrustCircleManager.swift */,
-				71659558B1F760C9216DADA6 /* RecipientsView.swift */,
 				0F353AAA0A318185B77A6036 /* UrgentSeeDispatchConsole.swift */,
+				33C24A1C3A5C27A2E2761A15 /* UrgentSeeDispatchConsole.swift.bak */,
 			);
 			name = Core;
 			path = UrgentSee/Core;
@@ -118,11 +134,11 @@
 		1CE0D7B5FDCB264CA8F90B58 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5EF36547E34A3286A7180FEA /* AccessibilitySettings.swift */,
+				EB348EA347556E11E3CCF828 /* CyberpunkDesignSystem.swift */,
 				0F649A65183D57ADEDC54245 /* DesignSystem.swift */,
 				D6A787EDCDE26D1BF3CA99D8 /* Info.plist */,
 				C46637A54352B74F5AB8DEB8 /* SharedModels.swift */,
-				3777948E294C4616B256C60F99137639 /* AccessibilitySettings.swift */,
-
 			);
 			name = Shared;
 			path = UrgentSee/Shared;
@@ -136,12 +152,21 @@
 			path = UrgentSee;
 			sourceTree = "<group>";
 		};
+		4AA31E8040E4062709953105 /* UrgentSeeTests */ = {
+			isa = PBXGroup;
+			children = (
+				BD8885C919A5C93FE6027D03 /* E2EERoundtripTests.swift */,
+			);
+			path = UrgentSeeTests;
+			sourceTree = "<group>";
+		};
 		914C592CA01E32778ABF3EDC /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				39BC8860E6CAF09C71BCA510 /* libUrgentSeeShared.a */,
 				AE9045E934B263EACC8D85FC /* UrgentSee.app */,
 				FA9937EA1E048FA4787965F9 /* UrgentSeeLiveActivityExtension.appex */,
+				A5629B8B7CC3C1CADA3F1F1E /* UrgentSeeTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -149,10 +174,10 @@
 		9575ED30A3FB911B3E1F3D6D /* App */ = {
 			isa = PBXGroup;
 			children = (
+				42521DBCA5430022EECEEE7A /* AuthSettingsView.swift */,
+				AB2BE15FA6D557DB380E4852 /* AuthSettingsView.swift.bak */,
+				B1EDD3ECA0BCDAC91F7DCF85 /* SettingsView.swift */,
 				AC602F30695AFE749EB64D12 /* UrgentSeeApp.swift */,
-				A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6 /* AuthSettingsView.swift */,
-				C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8 /* SettingsView.swift */,
-
 			);
 			name = App;
 			path = UrgentSee/App;
@@ -166,6 +191,7 @@
 				1CE0D7B5FDCB264CA8F90B58 /* Shared */,
 				2B00DE95E59B243B502A47CE /* UrgentSee */,
 				D6DB356D774D9B6BA7E676EE /* UrgentSeeLiveActivityExtension */,
+				4AA31E8040E4062709953105 /* UrgentSeeTests */,
 				914C592CA01E32778ABF3EDC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -204,6 +230,23 @@
 			productReference = AE9045E934B263EACC8D85FC /* UrgentSee.app */;
 			productType = "com.apple.product-type.application";
 		};
+		1E104BF680B4D424759D364E /* UrgentSeeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68038D71327B0EA474108005 /* Build configuration list for PBXNativeTarget "UrgentSeeTests" */;
+			buildPhases = (
+				79CA37094FCD28A703546B41 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = UrgentSeeTests;
+			packageProductDependencies = (
+			);
+			productName = UrgentSeeTests;
+			productReference = A5629B8B7CC3C1CADA3F1F1E /* UrgentSeeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		8B736AAB2449C1866092E1AA /* UrgentSeeLiveActivityExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E0FB07A2A72BD4E0C6C98C12 /* Build configuration list for PBXNativeTarget "UrgentSeeLiveActivityExtension" */;
@@ -228,7 +271,7 @@
 			buildConfigurationList = 9F82D6154B63ABCC0613BF98 /* Build configuration list for PBXNativeTarget "UrgentSeeShared" */;
 			buildPhases = (
 				9BF77A5CD261103A92976D27 /* Sources */,
-				
+				DB2884A51F080F8C3C5D918C /* Copy Swift Objective-C Interface Header */,
 			);
 			buildRules = (
 			);
@@ -248,7 +291,17 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2660;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					02FF7AC51A18AC4F2DE6678B = {
+						DevelopmentTeam = 538QNVLWHG;
+						ProvisioningStyle = Automatic;
+					};
+					1E104BF680B4D424759D364E = {
+						DevelopmentTeam = 538QNVLWHG;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 5EC42A73820881C11A6B993C /* Build configuration list for PBXProject "UrgentSee" */;
 			developmentRegion = en;
@@ -265,6 +318,7 @@
 			projectRoot = "";
 			targets = (
 				02FF7AC51A18AC4F2DE6678B /* UrgentSee */,
+				1E104BF680B4D424759D364E /* UrgentSeeTests */,
 				8B736AAB2449C1866092E1AA /* UrgentSeeLiveActivityExtension */,
 				CDC42590CB6AB1A5A7543D43 /* UrgentSeeShared */,
 			);
@@ -277,6 +331,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				99436D7EF43F4AD3CF7E71C4 /* Assets.xcassets in Resources */,
+				A3D563F3385FAE0B6286A12E /* AuthSettingsView.swift.bak in Resources */,
+				78D088FF9EE7E237BCF35457 /* UrgentSeeDispatchConsole.swift.bak in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,20 +363,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				D325039F21A97760322D00F9 /* APIService.swift in Sources */,
+				4B422525DB617DB71129F374 /* AccessibilitySettings.swift in Sources */,
+				55D2787D01E89B631027885C /* AuthSettingsView.swift in Sources */,
+				CD04611CF4F920CB618282C1 /* CyberpunkDesignSystem.swift in Sources */,
+				B85146015A1D45D588B3EE4C /* DesignSystem.swift in Sources */,
 				C438DCD9A92EB0AAD90263D6 /* E2EEManager.swift in Sources */,
+				C2AFC226A3DA5D245934E510 /* HistoryView.swift in Sources */,
 				44106E60E49DE0F0CAAE9383 /* PushNotificationManager.swift in Sources */,
+				363035DB06362F563CC93C82 /* RecipientsView.swift in Sources */,
 				E5620F15A06391DB8A5CB10B /* ReverseAckService.swift in Sources */,
+				B5A968CE74EDC8EAD22BD5C1 /* SettingsView.swift in Sources */,
+				E9CDC70F5E23A8B118DE03EE /* SharedModels.swift in Sources */,
 				EF47D5E1F95FDA2942821124 /* TrustCircleManager.swift in Sources */,
-				E72D4A8792FA6A31356E846B /* RecipientsView.swift in Sources */,
 				4BA6EED8EB74D6D64E6DE737 /* UrgentSeeApp.swift in Sources */,
 				463B264EC6D55461C93F082E /* UrgentSeeDispatchConsole.swift in Sources */,
-
-
-				B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7 /* AuthSettingsView.swift in Sources */,
-				D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9 /* SettingsView.swift in Sources */,
-
-				895B85BC77B944BFB41AB4334CFED853 /* AccessibilitySettings.swift in Sources */,
-
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		79CA37094FCD28A703546B41 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DA77EC95B3696EDCF256720E /* APIService.swift in Sources */,
+				50546968FA6EC61E7588DC38 /* E2EEManager.swift in Sources */,
+				13E211FA99FD3E1C0452F92F /* E2EERoundtripTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,10 +394,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6180D285F2DF179773F2F87B /* AccessibilitySettings.swift in Sources */,
+				CAEF621FAD8B99CE11BD298D /* CyberpunkDesignSystem.swift in Sources */,
 				6078ABEE4EB42A7D497B1976 /* DesignSystem.swift in Sources */,
 				19C1EAFFAB731CC9F1FF0DF9 /* SharedModels.swift in Sources */,
-				502941AEF3CE4A72A607D9A7B26316F3 /* AccessibilitySettings.swift in Sources */,
-
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,13 +426,34 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		1E3994150B7F407524852F28 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 538QNVLWHG;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-framework CryptoKit -framework Security";
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		239BEB4BCA62C9C7F6C17F25 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BASE = "[AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"SWIFT_VERSION\"): 5.9]";
 				CODE_SIGN_ENTITLEMENTS = UrgentSee/Entitlements/UrgentSee.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 538QNVLWHG;
 				INFOPLIST_FILE = UrgentSee/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -380,6 +467,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSee;
 				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -388,7 +476,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -422,7 +509,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -435,7 +521,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -445,9 +530,8 @@
 		6C824308B58B68A96FEA9223 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\"]";
+				BASE = "[\"SWIFT_VERSION\": 5.9, \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"CODE_SIGN_STYLE\": \"Automatic\", \"SKIP_INSTALL\": true]";
 				CODE_SIGN_ENTITLEMENTS = UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements;
-				DEVELOPMENT_TEAM = 538QNVLWHG;
 				INFOPLIST_FILE = UrgentSeeLiveActivityExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -469,7 +553,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -503,7 +586,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -523,7 +605,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -533,7 +614,7 @@
 		DC2E9C4E8511DA3FB5C820C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2]";
+				BASE = "[\"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"CODE_SIGN_STYLE\": \"Automatic\", \"SWIFT_VERSION\": 5.9, \"SKIP_INSTALL\": true]";
 				INFOPLIST_FILE = UrgentSee/Shared/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -543,17 +624,36 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeShared;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SWIFT_INSTALL_OBJC_HEADER = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
+		DF6101242E24E0FFAC8E7C91 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 538QNVLWHG;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-framework CryptoKit -framework Security";
+				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		E5F7A456135DA33435B02B0E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\"]";
+				BASE = "[\"SWIFT_VERSION\": 5.9, \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"CODE_SIGN_STYLE\": \"Automatic\", \"SKIP_INSTALL\": true]";
 				CODE_SIGN_ENTITLEMENTS = UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements;
-				DEVELOPMENT_TEAM = 538QNVLWHG;
 				INFOPLIST_FILE = UrgentSeeLiveActivityExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -575,9 +675,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BASE = "[AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2, AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"SWIFT_VERSION\"): 5.9]";
 				CODE_SIGN_ENTITLEMENTS = UrgentSee/Entitlements/UrgentSee.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 538QNVLWHG;
 				INFOPLIST_FILE = UrgentSee/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -591,6 +691,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSee;
 				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -598,7 +699,7 @@
 		EDA87DAC959F6301509619E4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[AnyHashable(\"SKIP_INSTALL\"): true, AnyHashable(\"DEVELOPMENT_TEAM\"): \"J4Z7WCCAGB\", AnyHashable(\"CODE_SIGN_STYLE\"): \"Automatic\", AnyHashable(\"SWIFT_VERSION\"): 5.9, AnyHashable(\"IPHONEOS_DEPLOYMENT_TARGET\"): 16.2]";
+				BASE = "[\"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"CODE_SIGN_STYLE\": \"Automatic\", \"SWIFT_VERSION\": 5.9, \"SKIP_INSTALL\": true]";
 				INFOPLIST_FILE = UrgentSee/Shared/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -608,7 +709,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.urgentsee.UrgentSeeShared;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SWIFT_INSTALL_OBJC_HEADER = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -630,6 +730,15 @@
 			buildConfigurations = (
 				C3FE588768216A3BC0688045 /* Debug */,
 				6C02B938E6E9F5449731CC0A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		68038D71327B0EA474108005 /* Build configuration list for PBXNativeTarget "UrgentSeeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E3994150B7F407524852F28 /* Debug */,
+				DF6101242E24E0FFAC8E7C91 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -2,6 +2,23 @@ name: UrgentSee
 options:
   bundleIdPrefix: com.urgentsee
 
+schemes:
+  UrgentSee:
+    build:
+      targets:
+        UrgentSee: all
+        UrgentSeeTests: [test]
+    run:
+      config: Debug
+      commandLineArguments:
+        OS_ACTIVITY_MODE: disable
+    test:
+      config: Debug
+      targets:
+        - name: UrgentSeeTests
+          parallelizable: true
+          randomExecutionOrder: false
+
 targets:
   UrgentSee:
     type: application
@@ -10,12 +27,15 @@ targets:
     sources:
       - UrgentSee/App
       - UrgentSee/Core
+      - path: UrgentSee/Shared
+        excludes:
+          - Info.plist
       - UrgentSee/Assets.xcassets
     settings:
-      BASE: 
+      base:
         SWIFT_VERSION: 5.9
         IPHONEOS_DEPLOYMENT_TARGET: 16.2
-        DEVELOPMENT_TEAM: J4Z7WCCAGB
+        DEVELOPMENT_TEAM: 538QNVLWHG
         CODE_SIGN_STYLE: Automatic
     info:
       path: UrgentSee/Info.plist
@@ -35,6 +55,23 @@ targets:
       - target: UrgentSeeShared
         embed: false
     
+  UrgentSeeTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.2"
+    sources:
+      - UrgentSeeTests
+      - UrgentSee/Core/E2EEManager.swift
+      - UrgentSee/Core/APIService.swift
+    settings:
+      base:
+        SWIFT_VERSION: 5.9
+        IPHONEOS_DEPLOYMENT_TARGET: 16.2
+        DEVELOPMENT_TEAM: 538QNVLWHG
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        OTHER_LDFLAGS: -framework CryptoKit -framework Security
+
   UrgentSeeLiveActivityExtension:
     type: app-extension
     platform: iOS
@@ -45,7 +82,7 @@ targets:
       BASE:
         SWIFT_VERSION: 5.9
         IPHONEOS_DEPLOYMENT_TARGET: 16.2
-        DEVELOPMENT_TEAM: J4Z7WCCAGB
+        DEVELOPMENT_TEAM: 538QNVLWHG
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
     info:
@@ -66,7 +103,7 @@ targets:
       BASE:
         SWIFT_VERSION: 5.9
         IPHONEOS_DEPLOYMENT_TARGET: 16.2
-        DEVELOPMENT_TEAM: J4Z7WCCAGB
+        DEVELOPMENT_TEAM: 538QNVLWHG
         CODE_SIGN_STYLE: Automatic
         SKIP_INSTALL: YES
     info:

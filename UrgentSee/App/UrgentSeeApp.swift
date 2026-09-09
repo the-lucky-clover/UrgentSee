@@ -24,6 +24,11 @@ struct UrgentSeeApp: App {
                         Label("Recipients", systemImage: "person.2.fill")
                     }
 
+                HistoryView()
+                    .tabItem {
+                        Label("History", systemImage: "clock.arrow.circlepath")
+                    }
+
                 AuthSettingsView()
                     .tabItem {
                         Label("Settings", systemImage: "gearshape.fill")

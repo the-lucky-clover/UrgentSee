@@ -22,3 +22,12 @@ id = "12c1bc6ac0f94b94b34e3bb0ea8cee72"
 binding = "READRUSH_DB"
 database_name = "urgentsee-db"
 database_id = "c82eff61-a76d-4ff5-83a0-8c94cda40abf"
+
+# Cron trigger: runs every 5 minutes to retry "until received" alerts
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Observability
+[observability]
+enabled = true
+head_sampling_rate = 1

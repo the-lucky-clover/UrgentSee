@@ -174,9 +174,6 @@ struct UrgentSeeDispatchConsole: View {
                         Text("DISPATCH")
                             .font(.system(size: settings.textSize * 0.5, weight: .black, design: .monospaced))
                             .foregroundColor(.white)
-                        Text("PER-RECIPIENT MESSAGES")
-                            .font(.system(size: settings.textSize * 0.25, weight: .bold, design: .monospaced))
-                            .foregroundColor(.gray)
                     }
                 }
             }
@@ -286,17 +283,13 @@ struct UrgentSeeDispatchConsole: View {
     @ViewBuilder private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Image(systemName: "cross.case.fill")
-                        .font(.system(size: settings.textSize * 0.65, weight: .bold))
-                        .foregroundColor(.red)
-                    Text("URGENTSEE")
+                HStack(spacing: 8) {
+                    // Red phone app icon replaces the old suitcase glyph.
+                    ShimmeringPhoneIcon(size: settings.textSize * 0.75)
+                    Text("UrgentSee")
                         .font(.system(size: settings.textSize * 0.9, weight: .black, design: .monospaced))
                         .foregroundColor(.white)
                 }
-                Text("HAIL MARY LOCK SCREEN DISPATCH")
-                    .font(.system(size: settings.textSize * 0.35, weight: .bold, design: .monospaced))
-                    .foregroundColor(.gray)
             }
 
             Spacer()
@@ -438,10 +431,10 @@ struct UrgentSeeDispatchConsole: View {
             ZStack(alignment: .topLeading) {
                 if messageText.isEmpty {
                     let hasContact = selectedContact != nil
-                    let placeholder = hasContact
+                    let hintText = hasContact
                         ? "Message for " + recipientsManager.displayName(for: selectedContact!.userId) + "..."
                         : "Select a recipient first..."
-                    Text(placeholder)
+                    Text(hintText)
                         .font(.system(size: settings.textSize * 0.55))
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 12)
@@ -675,18 +668,19 @@ struct UrgentSeeDispatchConsole: View {
 
         Task {
             do {
+                // Real pipeline only: progress advances on actual completed work.
+                // E2EE seal + POST happen inside dispatchRushAlert; the server
+                // attempts the APNs push synchronously before responding.
                 dispatchStage = .validating
                 dispatchProgress = 0.15
-                try await Task.sleep(nanoseconds: 300_000_000)
 
                 dispatchStage = .encrypting
                 dispatchProgress = 0.30
-                try await Task.sleep(nanoseconds: 300_000_000)
 
                 dispatchStage = .dispatching
                 dispatchProgress = 0.50
 
-                _ = try await apiService.dispatchRushAlert(
+                let dispatchResult = try await apiService.dispatchRushAlert(
                     senderName: apiService.deviceDisplayName,
                     recipientId: contact.userId,
                     messageText: messageText,
@@ -695,15 +689,17 @@ struct UrgentSeeDispatchConsole: View {
                     untilReceived: isUntilReceived
                 )
 
+                // Server responded: APNs push was attempted server-side.
                 dispatchStage = .pushing
                 dispatchProgress = 0.70
-                try await Task.sleep(nanoseconds: 500_000_000)
 
-                dispatchStage = .mounted
-                dispatchProgress = 0.85
-                try await Task.sleep(nanoseconds: 500_000_000)
-
-                let confirmations = checkDeliveryConfirmations(contact)
+                // A mounted/on-screen delivery is only claimed when the backend
+                // confirms it; otherwise we stay honest at the pushing stage.
+                let confirmations = checkDeliveryConfirmations(contact, serverStatus: dispatchResult.status)
+                if dispatchResult.status == "MOUNTED_ON_LOCK_SCREEN" {
+                    dispatchStage = .mounted
+                    dispatchProgress = 0.85
+                }
 
                 await MainActor.run {
                     isDispatching = false
@@ -756,19 +752,28 @@ struct UrgentSeeDispatchConsole: View {
         }
     }
 
-    private func checkDeliveryConfirmations(_ contact: TrustCircleManager.TrustCircleMember) -> [String] {
+    // Only claims what is actually known: local trust-circle state + the
+    // backend's confirmed dispatch status. Nothing is assumed about APNs
+    // delivery beyond what the server reported.
+    private func checkDeliveryConfirmations(_ contact: TrustCircleManager.TrustCircleMember, serverStatus: String) -> [String] {
         var confirmations: [String] = []
         if contact.hasAppInstalled {
-            confirmations.append("✅ App installed & active")
+            confirmations.append("✅ Recipient in trust circle & active")
         } else {
-            confirmations.append("⚠️ App not installed - delivery pending")
+            confirmations.append("⚠️ Recipient app not seen - delivery pending")
         }
         if isCriticalOverride {
-            confirmations.append("🔊 DND Override ACTIVE")
+            confirmations.append("🔊 Critical flag requested")
         }
-        confirmations.append("📤 APNs push dispatched")
+        if serverStatus == "MOUNTED_ON_LOCK_SCREEN" {
+            confirmations.append("📤 Server confirmed push accepted")
+        } else if serverStatus == "PUSH_FAILED" {
+            confirmations.append("❌ Server reported push failed")
+        } else {
+            confirmations.append("📤 Server response: " + serverStatus)
+        }
         if selectedTTL == .untilReceived {
-            confirmations.append("🔄 Auto-retry until read")
+            confirmations.append("🔄 Server will auto-retry until read")
         }
         return confirmations
     }
@@ -1195,42 +1200,10 @@ struct DispatchToast: View {
     }
 }
 
-struct GlassmorphicBentoModifier: ViewModifier {
-    var glowColor: Color = .red
-    var cornerRadius: CGFloat = 20
+// NOTE: glassmorphicBento() lives in Shared/CyberpunkDesignSystem.swift
+// (single source of truth for the bento tile). Do not redeclare here.
 
-    func body(content: Content) -> some View {
-        content
-            .padding(14)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(Color.white.opacity(0.03))
-                        .background(.ultraThinMaterial)
-
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(
-                            LinearGradient(
-                                colors: [glowColor.opacity(0.5), glowColor.opacity(0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.2
-                        )
-                }
-            )
-            .cornerRadius(cornerRadius)
-            .shadow(color: glowColor.opacity(0.18), radius: 10, x: 0, y: 5)
-    }
-}
-
-extension View {
-    func glassmorphicBento(glowColor: Color = .red, cornerRadius: CGFloat = 20) -> some View {
-        self.modifier(GlassmorphicBentoModifier(glowColor: glowColor, cornerRadius: cornerRadius))
-    }
-}
-
-// MARK: - Dispatch progress modal (animated intro, blurred background, unsend)
+// MARK: - Dispatch progress modal (3D glassmorphic bento, blurred backdrop, staggered intro)
 
 struct DispatchModalView: View {
     let stage: DispatchStage
@@ -1238,44 +1211,53 @@ struct DispatchModalView: View {
     let textSize: Double
     let onDone: () -> Void
 
-    @State private var appeared = false
-    @State private var blurRadius: CGFloat = 0
+    private var glow: Color {
+        switch stage {
+        case .failed: return .neonRed
+        case .confirmed: return .neonGreen
+        default: return .neonCyan
+        }
+    }
+
+    @State private var bg = false        // backdrop blur + glows
+    @State private var card = false      // card 3D entrance
+    @State private var icon = false
+    @State private var title = false
+    @State private var bodyIn = false
+    @State private var action = false
 
     var body: some View {
         ZStack {
-            // Animated blurred background
-            Color.black.opacity(0.55)
-                .blur(radius: blurRadius)
+            Color.voidBlack
+                .blur(radius: bg ? 0 : 0)
                 .ignoresSafeArea()
 
-            VStack(spacing: 18) {
-                if stage == .confirmed {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: textSize * 1.4, weight: .bold))
-                        .foregroundColor(.green)
-                        .transition(.scale.combined(with: .opacity))
+            // Soft neon ambient glows
+            RadialGradient(colors: [glow.opacity(bg ? 0.35 : 0), .clear], center: .center, startRadius: 20, endRadius: 420)
+                .ignoresSafeArea()
 
-                    Text("MESSAGE SENT")
-                        .font(.system(size: textSize * 0.6, weight: .black, design: .monospaced))
-                        .foregroundColor(.white)
+            // Subtle neon grid
+            NeonGridBackground(lineColor: glow.opacity(0.10), lineSpacing: 34)
 
-                    Text("Resending until read")
-                        .font(.system(size: textSize * 0.4))
-                        .foregroundColor(.gray)
-                } else if stage == .failed {
-                    Image(systemName: "xmark.octagon.fill")
-                        .font(.system(size: textSize * 1.4, weight: .bold))
-                        .foregroundColor(.red)
-                        .transition(.scale.combined(with: .opacity))
-                    Text("SEND FAILED")
-                        .font(.system(size: textSize * 0.6, weight: .black, design: .monospaced))
-                        .foregroundColor(.red)
+            VStack(spacing: 20) {
+                if stage == .failed {
+                    iconView("xmark.octagon.fill", color: .neonRed, bounce: false)
+                        .modifier(IntroStagger(enabled: icon))
+                    textView("SEND FAILED", color: .neonRed)
+                        .modifier(IntroStagger(enabled: title))
+                } else if stage == .confirmed {
+                    iconView("checkmark.circle.fill", color: .neonGreen, bounce: true)
+                        .modifier(IntroStagger(enabled: icon))
+                    textView("MESSAGE SENT", color: .neonGreen)
+                        .modifier(IntroStagger(enabled: title))
+                    bodyView("Resending until read")
+                        .modifier(IntroStagger(enabled: bodyIn))
                 } else {
                     DispatchProgressView(stage: stage, progress: progress, textSize: textSize)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .modifier(IntroStagger(enabled: icon))
                 }
 
-                if stage == .confirmed {
+                if stage == .confirmed || stage == .failed {
                     Button(action: onDone) {
                         Text("DONE")
                             .font(.system(size: textSize * 0.45, weight: .black, design: .monospaced))
@@ -1284,28 +1266,105 @@ struct DispatchModalView: View {
                             .background(Color.white.opacity(0.1))
                             .foregroundColor(.white)
                             .cornerRadius(14)
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(glow.opacity(0.4), lineWidth: 1))
                     }
+                    .modifier(IntroStagger(enabled: action))
                 }
             }
             .padding(24)
             .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(white: 0.08).opacity(0.96))
-                    .shadow(color: .black.opacity(0.5), radius: 30, x: 0, y: 10)
+                RoundedRectangle(cornerRadius: 28)
+                    .fill(LinearGradient(colors: [Color.glassLight, Color.glassDark], startPoint: .topLeading, endPoint: .bottomTrailing))
             )
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
             .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(stage == .failed ? Color.red.opacity(0.6) : Color.green.opacity(0.4), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(LinearGradient(colors: [glow.opacity(0.7), glow.opacity(0.15), .white.opacity(0.25)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
             )
-            .offset(x: appeared ? 0 : 0, y: appeared ? 0 : -60)
-            .scaleEffect(appeared ? 1 : 0.85)
-            .opacity(appeared ? 1 : 0)
+            .shadow(color: glow.opacity(card ? 0.55 : 0), radius: 42, x: 0, y: 0)
+            .shadow(color: .black.opacity(0.55), radius: 28, x: 0, y: 16)
+            .rotation3DEffect(.degrees(card ? 0 : -8), axis: (x: 1, y: 1, z: 0))
+            .rotation3DEffect(.degrees(card ? 0 : 10), axis: (x: 0, y: 1, z: 0))
+            .scaleEffect(card ? 1 : 0.82)
+            .opacity(card ? 1 : 0)
+            .offset(y: card ? 0 : -70)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.55, dampingFraction: 0.7)) {
-                appeared = true
-                blurRadius = 18
+            // Framer-motion-style staged entrance.
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.72)) { bg = true }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.68).delay(0.10)) { card = true }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.22)) { icon = true }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.34)) { title = true }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.46)) { bodyIn = true }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.60)) { action = true }
+        }
+        .onChange(of: stage) { newStage in
+            if newStage == .confirmed || newStage == .failed {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { action = true }
             }
         }
+    }
+
+    private func iconView(_ systemName: String, color: Color, bounce: Bool) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: textSize * 1.5, weight: .bold))
+            .foregroundColor(color)
+            .shadow(color: color.opacity(0.8), radius: 18)
+            .shadow(color: color.opacity(0.35), radius: 34)
+            .scaleEffect(bounce ? 1.12 : 1)
+            .animation(bounce ? .spring(response: 0.4, dampingFraction: 0.5).repeatForever(autoreverses: true) : .default, value: bounce)
+    }
+
+    private func textView(_ text: String, color: Color) -> some View {
+        Text(text)
+            .font(.system(size: textSize * 0.6, weight: .black, design: .monospaced))
+            .foregroundColor(.white)
+            .shadow(color: color.opacity(0.6), radius: 10)
+    }
+
+    private func bodyView(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: textSize * 0.4))
+            .foregroundColor(.gray)
+    }
+}
+
+/// Applies fly-in, fade-in, scale-up once when `enabled` flips true.
+private struct IntroStagger: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        content
+            .opacity(enabled ? 1 : 0)
+            .scaleEffect(enabled ? 1 : 0.8)
+            .offset(y: enabled ? 0 : 26)
+            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: enabled)
+    }
+}
+
+/// Sparse neon grid so the backdrop reads "professional, grid-aligned".
+private struct NeonGridBackground: View {
+    var lineColor: Color
+    var lineSpacing: CGFloat = 34
+
+    var body: some View {
+        GeometryReader { geo in
+            Canvas { ctx, size in
+                var path = Path()
+                var x: CGFloat = 0
+                while x <= size.width {
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: size.height))
+                    x += lineSpacing
+                }
+                var y: CGFloat = 0
+                while y <= size.height {
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: size.width, y: y))
+                    y += lineSpacing
+                }
+                ctx.stroke(path, with: .color(lineColor), lineWidth: 0.5)
+            }
+        }
+        .allowsHitTesting(false)
     }
 }

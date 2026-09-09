@@ -107,24 +107,33 @@ final class E2EEManager: ObservableObject {
     }
     
     // MARK: - Encryption (Sender side - SealBox)
-    
+
     /// Encrypts a message for a recipient using their public key (SealedBox / anonymous encryption)
     /// This is equivalent to libsodium's crypto_box_seal
     func sealEncrypt(message: String, recipientPublicKeyBase64: String) throws -> String {
         guard let recipientPublicKeyData = Data(base64Encoded: recipientPublicKeyBase64),
               recipientPublicKeyData.count == 32,
-              let recipientPublicKey = try? Curve25519.KeyAgreement.PublicKey(rawRepresentation: recipientPublicKeyData),
-              let messageData = message.data(using: .utf8) else {
+              let recipientPublicKey = try? Curve25519.KeyAgreement.PublicKey(rawRepresentation: recipientPublicKeyData) else {
             throw E2EEError.invalidInput
         }
-        
+        return try Self.sealEncrypt(message: message, recipientPublicKey: recipientPublicKey)
+    }
+
+    /// Stateless core: encrypt for an already-parsed recipient public key.
+    /// Exposed so unit tests exercise the exact production code path without
+    /// touching the Keychain singleton. nonisolated: pure crypto, no actor state.
+    nonisolated static func sealEncrypt(message: String, recipientPublicKey: Curve25519.KeyAgreement.PublicKey) throws -> String {
+        guard let messageData = message.data(using: .utf8) else {
+            throw E2EEError.invalidInput
+        }
+
         // Generate ephemeral key pair for this encryption
         let ephemeralPrivateKey = Curve25519.KeyAgreement.PrivateKey()
         let ephemeralPublicKey = ephemeralPrivateKey.publicKey
-        
+
         // Perform key agreement: ephemeral_private * recipient_public
         let sharedSecret = try ephemeralPrivateKey.sharedSecretFromKeyAgreement(with: recipientPublicKey)
-        
+
         // Derive encryption key using HKDF (matching libsodium's key derivation)
         let symmetricKey = sharedSecret.hkdfDerivedSymmetricKey(
             using: SHA256.self,
@@ -132,12 +141,12 @@ final class E2EEManager: ObservableObject {
             sharedInfo: Data("UrgentSee-SealedBox".utf8),
             outputByteCount: 32
         )
-        
+
         // Encrypt with ChaChaPoly (AEAD) using ChaChaPoly.SealedBox.combined which
         // prepends the 12-byte nonce to [ciphertext + tag] for transport.
         let combinedSealed = try ChaChaPoly.seal(messageData, using: symmetricKey).combined
         // combined = nonce(12) + ciphertext + tag(16)
-        
+
         // Final blob: [ephemeral_pk(32)][nonce(12)+ciphertext+tag]
         var combined = Data()
         combined.append(ephemeralPublicKey.rawRepresentation) // 32 bytes
@@ -150,9 +159,18 @@ final class E2EEManager: ObservableObject {
     /// Decrypts a sealed message using our private key
     /// This is equivalent to libsodium's crypto_box_seal_open
     func sealDecrypt(sealedMessageBase64: String) throws -> String {
-        guard let privateKey = privateKey,
-              let sealedData = Data(base64Encoded: sealedMessageBase64),
-              sealedData.count >= 32 + 12 + 16 + 16 else { // ephemeral_pk(32) + nonce(12) + ciphertext(1+) + tag(16)
+        guard let privateKey = privateKey else {
+            throw E2EEError.invalidInput
+        }
+        return try Self.sealDecrypt(sealedMessageBase64: sealedMessageBase64, privateKey: privateKey)
+    }
+
+    /// Stateless core: decrypt with an explicit private key.
+    /// Exposed so unit tests exercise the exact production code path without
+    /// touching the Keychain singleton. nonisolated: pure crypto, no actor state.
+    nonisolated static func sealDecrypt(sealedMessageBase64: String, privateKey: Curve25519.KeyAgreement.PrivateKey) throws -> String {
+        guard let sealedData = Data(base64Encoded: sealedMessageBase64),
+              sealedData.count >= 32 + 12 + 16 else { // ephemeral_pk(32) + nonce(12) + tag(16); ciphertext may be empty
             throw E2EEError.invalidInput
         }
         

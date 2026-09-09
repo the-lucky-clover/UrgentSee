@@ -12,7 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "moduleDetection": "force",
     "isolatedModules": true,
-    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "noEmit": true
   },
