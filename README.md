@@ -330,3 +330,48 @@ cd android
 - CryptoKit (iOS) / JCA XDH (Android)
 - BGAppRefreshTask (iOS) / WorkManager (Android)
 - Live Activities + App Widgets
+---
+
+## Critical Alerts (true Do-Not-Disturb override)
+
+UrgentSee's production push uses `interruption-level: critical`, which requires Apple's
+**Critical Alerts** capability. There are three steps:
+
+1. **Apple approval (capability)** — In the Apple Developer portal, add the
+   *Critical Alerts* capability to the App ID for `com.urgentsee.UrgentSee` and regenerate
+   your provisioning profile. Apple reviews/approves this entitlement per app.
+2. **Entitlements** — Once approved, use the production entitlements file
+   (`UrgentSee/Entitlements/UrgentSee.Production.entitlements`) which includes
+   `com.apple.developer.critical-alerts` and `aps-environment: production`.
+3. **User approval** — On each recipient's iPhone, the user must allow Critical Alerts:
+   **Settings → Notifications → UrgentSee → Critical Alerts → Allow**.
+
+Until the capability is approved, the app sends **time-sensitive/plain** alerts and the
+recipient must instead allow UrgentSee through their Focus modes
+(**Settings → Focus → Allowed Notifications → Add → UrgentSee**) — which the in-app
+onboarding already walks through.
+
+The Settings → **Push Diagnostic** section reports whether Critical Alerts are
+currently enabled on the device, so you can verify the override is active.
+
+---
+
+## Android build prerequisites
+
+Local `./gradlew assembleDebug` needs:
+
+1. **JDK 17** (AGP 8.1.4 + google-services 4.4.0 require Java 11+, AGP 17).
+2. **`google-services.json`** from your Firebase project in `android/app/`
+   (Firebase Cloud Messaging is used for Android push).
+3. Android SDK (CI provides it via `android-actions/setup-android`; locally set `sdk.dir` in `android/local.properties`).
+
+The Gradle wrapper is committed (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`),
+and `settings.gradle` repository URLs are corrected.
+
+## Rate limiting
+
+Per sender→recipient pair, `RateLimiterDO` enforces a sliding window
+(`windowMs` = 60 min, `maxDispatchesPerWindow`). The current dev default is **100/hour**
+to allow stress testing; set `maxDispatchesPerWindow` back to a low value (e.g. 3–5)
+for production. `POST /v1/rush/rate-limit-override` is the admin emergency bypass
+(auth-gated to the sender).

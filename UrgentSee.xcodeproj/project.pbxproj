@@ -530,7 +530,7 @@
 		6C824308B58B68A96FEA9223 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[\"SWIFT_VERSION\": 5.9, \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"CODE_SIGN_STYLE\": \"Automatic\", \"SKIP_INSTALL\": true]";
+				BASE = "[\"CODE_SIGN_STYLE\": \"Automatic\", \"SWIFT_VERSION\": 5.9, \"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"SKIP_INSTALL\": true]";
 				CODE_SIGN_ENTITLEMENTS = UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements;
 				INFOPLIST_FILE = UrgentSeeLiveActivityExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -614,7 +614,7 @@
 		DC2E9C4E8511DA3FB5C820C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[\"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"CODE_SIGN_STYLE\": \"Automatic\", \"SWIFT_VERSION\": 5.9, \"SKIP_INSTALL\": true]";
+				BASE = "[\"SWIFT_VERSION\": 5.9, \"SKIP_INSTALL\": true, \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"CODE_SIGN_STYLE\": \"Automatic\", \"DEVELOPMENT_TEAM\": \"538QNVLWHG\"]";
 				INFOPLIST_FILE = UrgentSee/Shared/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -652,7 +652,7 @@
 		E5F7A456135DA33435B02B0E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[\"SWIFT_VERSION\": 5.9, \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"CODE_SIGN_STYLE\": \"Automatic\", \"SKIP_INSTALL\": true]";
+				BASE = "[\"CODE_SIGN_STYLE\": \"Automatic\", \"SWIFT_VERSION\": 5.9, \"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"SKIP_INSTALL\": true]";
 				CODE_SIGN_ENTITLEMENTS = UrgentSeeLiveActivityExtension/Entitlements/UrgentSeeLiveActivity.entitlements;
 				INFOPLIST_FILE = UrgentSeeLiveActivityExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -699,7 +699,7 @@
 		EDA87DAC959F6301509619E4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BASE = "[\"DEVELOPMENT_TEAM\": \"538QNVLWHG\", \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"CODE_SIGN_STYLE\": \"Automatic\", \"SWIFT_VERSION\": 5.9, \"SKIP_INSTALL\": true]";
+				BASE = "[\"SWIFT_VERSION\": 5.9, \"SKIP_INSTALL\": true, \"IPHONEOS_DEPLOYMENT_TARGET\": 16.2, \"CODE_SIGN_STYLE\": \"Automatic\", \"DEVELOPMENT_TEAM\": \"538QNVLWHG\"]";
 				INFOPLIST_FILE = UrgentSee/Shared/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = (

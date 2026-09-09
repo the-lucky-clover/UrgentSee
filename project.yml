@@ -40,6 +40,7 @@ targets:
     info:
       path: UrgentSee/Info.plist
       properties:
+        API_BASE_URL: https://urgentsee-edge.pounds1.workers.dev
         UILaunchScreen:
           UIColorName: LaunchScreenBackground
           UIImageName: LaunchScreenIcon
@@ -47,6 +48,13 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
         UIUserInterfaceStyle: Dark
+        UIBackgroundModes:
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.urgentsee.reverse-ack-retry
+        # iOS 18.4+ critical-alert request/entitlement markers.
+        UICriticalAlertRequest: true
+        UICriticalAlertEntitlement: true
     entitlements:
       path: UrgentSee/Entitlements/UrgentSee.entitlements
       properties:

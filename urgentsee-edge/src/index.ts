@@ -95,7 +95,28 @@ export async function authenticateRequest(request: Request, env: Env): Promise<{
 
 // MARK: - JWT signing (server-issued tokens)
 
-export function base64UrlEncode(data: Uint8Array): string {
+export // MARK: - CORS
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, PUT, GET, DELETE',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+function withCORS(response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(CORS_HEADERS)) {
+    headers.set(key, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function base64UrlEncode(data: Uint8Array): string {
   let binary = '';
   for (let i = 0; i < data.byteLength; i++) binary += String.fromCharCode(data[i]);
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -295,86 +316,87 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
+      return withCORS(new Response(null, {
+        status: 204,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, OPTIONS, PUT, GET, DELETE',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
-      });
+      }));
     }
 
     try {
       if (url.pathname === '/v1/device/register' && request.method === 'POST') {
-        return await handleDeviceRegister(request, env);
+        return withCORS(await handleDeviceRegister(request, env));
       }
       if (url.pathname === '/v1/pairing/code' && request.method === 'POST') {
-        return await handlePairingCode(request, env);
+        return withCORS(await handlePairingCode(request, env));
       }
       if (url.pathname === '/v1/pairing/claim' && request.method === 'POST') {
-        return await handlePairingClaim(request, env);
+        return withCORS(await handlePairingClaim(request, env));
       }
       const alertDetailMatch = url.pathname.match(/^\/v1\/rush\/alerts\/([^/]+)$/);
       if (alertDetailMatch && request.method === 'GET') {
-        return await handleGetAlert(request, env, alertDetailMatch[1]);
+        return withCORS(await handleGetAlert(request, env, alertDetailMatch[1]));
       }
       if (url.pathname === '/v1/rush/unsend' && request.method === 'POST') {
-        return await handleUnsend(request, env);
+        return withCORS(await handleUnsend(request, env));
       }
       if (url.pathname === '/v1/user/token' && request.method === 'POST') {
-        return await handleTokenSync(request, env);
+        return withCORS(await handleTokenSync(request, env));
       }
       if (url.pathname === '/v1/user/public-key' && request.method === 'PUT') {
-        return await handlePublicKeyUpdate(request, env);
+        return withCORS(await handlePublicKeyUpdate(request, env));
       }
       if (url.pathname.match(/^\/v1\/user\/([^/]+)\/public-key$/) && request.method === 'GET') {
-        return await handlePublicKeyFetch(request, env);
+        return withCORS(await handlePublicKeyFetch(request, env));
       }
       // Recipients endpoints
       if (url.pathname === '/v1/trust-circle' && request.method === 'GET') {
-        return await handleTrustCircleList(request, env);
+        return withCORS(await handleTrustCircleList(request, env));
       }
       if (url.pathname === '/v1/trust-circle/invite' && request.method === 'POST') {
-        return await handleTrustCircleInvite(request, env);
+        return withCORS(await handleTrustCircleInvite(request, env));
       }
       if (url.pathname === '/v1/trust-circle/accept' && request.method === 'POST') {
-        return await handleTrustCircleAccept(request, env);
+        return withCORS(await handleTrustCircleAccept(request, env));
       }
       if (url.pathname === '/v1/trust-circle/block' && request.method === 'POST') {
-        return await handleTrustCircleBlock(request, env);
+        return withCORS(await handleTrustCircleBlock(request, env));
       }
       if (url.pathname === '/v1/trust-circle/remove' && request.method === 'POST') {
-        return await handleTrustCircleRemove(request, env);
+        return withCORS(await handleTrustCircleRemove(request, env));
       }
       if (url.pathname === '/v1/user/heartbeat' && request.method === 'POST') {
-        return await handleHeartbeat(request, env);
+        return withCORS(await handleHeartbeat(request, env));
       }
       // Admin override for rate limiting
       if (url.pathname === '/v1/rush/rate-limit-override' && request.method === 'POST') {
-        return await handleRateLimitOverride(request, env);
+        return withCORS(await handleRateLimitOverride(request, env));
       }
       if (url.pathname === '/v1/rush/dispatch' && request.method === 'POST') {
-        return await handleDispatch(request, env);
+        return withCORS(await handleDispatch(request, env));
       }
       if (url.pathname === '/v1/rush/ack' && request.method === 'POST') {
-        return await handleReverseAck(request, env);
+        return withCORS(await handleReverseAck(request, env));
       }
       if (url.pathname === '/v1/rush/history' && request.method === 'GET') {
-        return await handleHistory(request, env);
+        return withCORS(await handleHistory(request, env));
       }
       if (url.pathname === '/v1/telemetry/summary' && request.method === 'GET') {
-        return await handleTelemetrySummary(request, env);
+        return withCORS(await handleTelemetrySummary(request, env));
       }
 
-      return new Response(JSON.stringify({ error: 'NOT_FOUND' }), {
+      return withCORS(new Response(JSON.stringify({ error: 'NOT_FOUND' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
-      });
+      }));
     } catch (err: any) {
-      return new Response(JSON.stringify({ error: 'INTERNAL_SERVER_ERROR', message: err.message }), {
+      return withCORS(new Response(JSON.stringify({ error: 'INTERNAL_SERVER_ERROR', message: err.message }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
-      });
+      }));
     }
   },
 

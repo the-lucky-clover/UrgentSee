@@ -247,6 +247,7 @@ struct AuthSettingsView: View {
     @State private var claimSheetPresented = false
     @State private var claimCode = ""
     @State private var authStatusText = "checking…"
+    @State private var criticalAlertText = ""
     @State private var testFeedback: String?
     @State private var showFocusGuidance = false
 
@@ -380,6 +381,11 @@ struct AuthSettingsView: View {
                     Section(header: Text("PUSH DIAGNOSTIC")) {
                         Text("Authorization: \(authStatusText)")
                             .font(.system(size: settings.textSize * 0.55))
+                        if !criticalAlertText.isEmpty {
+                            Text("Critical alerts: \(criticalAlertText)")
+                                .font(.system(size: settings.textSize * 0.55))
+                                .foregroundColor(criticalAlertText == "Enabled" ? .green : .orange)
+                        }
                         let tokenSuffix = pushManager.apnsToken.map { String($0.suffix(8)) } ?? "none"
                         Text("Device token: …\(tokenSuffix)")
                             .font(.system(size: settings.textSize * 0.5, design: .monospaced))
@@ -459,6 +465,14 @@ struct AuthSettingsView: View {
                     case .ephemeral: authStatusText = "Ephemeral"
                     case .notDetermined: authStatusText = "Not Determined"
                     @unknown default: authStatusText = "Unknown"
+                    }
+
+                    let critical = await pushManager.currentCriticalAlertSetting()
+                    switch critical {
+                    case .enabled: criticalAlertText = "Enabled"
+                    case .disabled: criticalAlertText = "Off"
+                    case .notSupported: criticalAlertText = "Not supported"
+                    @unknown default: criticalAlertText = ""
                     }
                 }
             }

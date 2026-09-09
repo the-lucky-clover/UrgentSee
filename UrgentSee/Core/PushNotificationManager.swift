@@ -70,6 +70,12 @@ final class PushNotificationManager: NSObject, ObservableObject {
         return settings.authorizationStatus
     }
 
+    /// iOS 15+: whether the user has authorized Critical Alerts (true DND override).
+    func currentCriticalAlertSetting() async -> UNNotificationSetting {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        return settings.criticalAlertSetting
+    }
+
     func sendTestLocalNotification() {
         scheduleTestNotification { _ in }
     }
