@@ -235,15 +235,21 @@ struct FocusGuidanceView: View {
                 Image(systemName: "bell.badge.slash.fill")
                     .font(.system(size: 34, weight: .bold))
                     .foregroundColor(.green)
-                Text("Allow UrgentSee to break through DND / Focus")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Allow UrgentSee to break through DND / Focus")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("iOS has no direct shortcut to Focus, so follow these steps:")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+                }
             }
 
-            guidanceRow(icon: "1.circle.fill", text: "Open the iPhone Settings app")
-            guidanceRow(icon: "2.circle.fill", text: "Tap Focus, then choose each Focus you use (e.g. Do Not Disturb, Personal, Sleep)")
-            guidanceRow(icon: "3.circle.fill", text: "Under Allowed Notifications tap 'Add' and pick UrgentSee")
-            guidanceRow(icon: "4.circle.fill", text: "Repeat for any other Focus modes you want UrgentSee to override")
+            guidanceRow(icon: "1.circle.fill", text: "Tap OPEN SETTINGS below (opens the iPhone Settings app)")
+            guidanceRow(icon: "2.circle.fill", text: "Tap Focus")
+            guidanceRow(icon: "3.circle.fill", text: "Tap a Focus you use (Do Not Disturb, Personal, Sleep…)")
+            guidanceRow(icon: "4.circle.fill", text: "Under Allowed Notifications tap Add → choose UrgentSee")
+            guidanceRow(icon: "5.circle.fill", text: "Repeat for each Focus you want UrgentSee to break through")
 
             Spacer()
 
