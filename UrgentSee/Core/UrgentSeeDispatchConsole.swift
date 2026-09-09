@@ -80,6 +80,7 @@ struct UrgentSeeDispatchConsole: View {
     @State private var showDispatchModal = false
     @State private var lastAlertId = ""
     @State private var unsendActive = false
+    @State private var renameRecipient: RecipientToName?
 
     @StateObject private var apiService = APIService.shared
     @StateObject private var recipientsManager = TrustCircleManager.shared
@@ -220,6 +221,13 @@ struct UrgentSeeDispatchConsole: View {
                     onDone: { dismissDispatchModal() }
                 )
             }
+            .sheet(item: $renameRecipient) { pending in
+                NameRecipientSheet(userId: pending.id, onSave: { name in
+                    Haptics.success()
+                    recipientsManager.setDisplayName(name, for: pending.id)
+                })
+                .environmentObject(settings)
+            }
         }
     }
 
@@ -246,9 +254,9 @@ struct UrgentSeeDispatchConsole: View {
         VStack(spacing: 14) {
             headerSection
             recipientSection
+            templatesSection
             payloadSection
             dispatchButtonSection
-            templatesSection
             if !apiService.isAuthenticated {
                 authBannerSection
             }
@@ -348,6 +356,13 @@ struct UrgentSeeDispatchConsole: View {
                                 textSize: settings.textSize,
                                 onTap: { onRecipientSelected(contact) }
                             )
+                            .contextMenu {
+                                Button {
+                                    renameRecipient = RecipientToName(id: contact.userId)
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, 2)
