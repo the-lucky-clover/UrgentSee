@@ -771,7 +771,7 @@ async function handleDispatch(request: Request, env: Env): Promise<Response> {
   const apnsPayload = {
     aps: {
       alert: {
-        title: senderName || 'UrgentSee',
+        title: 'UrgentSee Received:',
         body: finalPreview,
       },
       sound: 'default',
